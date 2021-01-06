@@ -3,14 +3,10 @@ import { Episode } from '../entities/episode.entity';
 import { CoreOutput } from './core/core.dto';
 
 @InputType()
-export class CreateEpisodeInput extends PickType(
-  Episode,
-  ['story', 'title'],
-  InputType,
-) {
+export class DeleteEpisodeInput extends PickType(Episode, ['id'], InputType) {
   @Field(() => Int)
   podcastId: number;
 }
 
 @ObjectType()
-export class CreateEpisodeOutput extends CoreOutput {}
+export class DeleteEpisodeOutput extends CoreOutput {}

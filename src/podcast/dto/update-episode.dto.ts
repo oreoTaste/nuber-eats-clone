@@ -1,4 +1,24 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateEpisodeDto } from './create-episode.dto';
+import {
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  PartialType,
+  PickType,
+} from '@nestjs/graphql';
+import { Episode } from '../entities/episode.entity';
+import { CoreOutput } from './core/core.dto';
 
-export class UpdateEpisodeDto extends PartialType(CreateEpisodeDto) {}
+@InputType()
+export class UpdateEpisodeInput extends PartialType(
+  PickType(Episode, ['story', 'title'], InputType),
+) {
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => Int)
+  podcastId: number;
+}
+
+@ObjectType()
+export class UpdateEpisodeOutput extends CoreOutput {}
