@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   CreateEpisodeInput,
   CreateEpisodeOutput,
@@ -34,133 +36,149 @@ import {
   UpdatePodcastInput,
   UpdatePodcastOutput,
 } from './dto/update-podcast.dto';
+import { Episode } from './entities/episode.entity';
 import { Podcast } from './entities/podcast.entity';
 
 @Injectable()
 export class PodcastService {
-  private podcasts: Podcast[] = [];
+  constructor(
+    @InjectRepository(Podcast)
+    private podcastRepository: Repository<Podcast>,
+    @InjectRepository(Episode)
+    private episodeRepository: Repository<Episode>,
+  ) {}
 
-  getAll(): Podcast[] {
-    return this.podcasts;
+  async getAll(): Promise<Podcast[]> {
+    try {
+      return await this.podcastRepository.find({ take: 3000 });
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 
-  getOne(id: number): Podcast {
-    return this.podcasts.find((el) => el.id === id);
+  async getOne(id: number): Promise<Podcast> {
+    try {
+      return await this.podcastRepository.findOne(id);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 
-  getAllPodcasts(): AllPodcastsOutput {
-    return { podcasts: this.getAll(), ok: true };
+  async getAllPodcasts(): Promise<AllPodcastsOutput> {
+    const podcasts = await this.podcastRepository
+      .createQueryBuilder('podcast')
+      .leftJoinAndSelect('podcast.episodes', 'episodes')
+      .getMany();
+    return { podcasts, ok: true };
   }
 
-  getPodcast({ id }: MyPodcastInput): MyPodcastOutput {
-    const podcast = this.getOne(id);
+  async getPodcast({ id }: MyPodcastInput): Promise<MyPodcastOutput> {
+    const podcast = await this.podcastRepository
+      .createQueryBuilder('podcast')
+      .leftJoinAndSelect('podcast.episodes', 'episodes')
+      .where('podcast.id = :id', { id })
+      .getOne();
     if (!podcast) {
       throw new NotFoundException(`Podcast id : ${id} is not found`);
     }
     return { podcast, ok: true };
   }
-  createPodcast({
-    title,
-    category,
-    rating,
-  }: CreatePodcastInput): CreatePodcastOutput {
-    if (this.podcasts.length > 0) {
-      let maxPodcastId = this.podcasts[0].id;
-      this.podcasts.forEach((el) => {
-        if (maxPodcastId < el.id) {
-          maxPodcastId = el.id;
+
+  async createPodcast(
+    createPodcastInput: CreatePodcastInput,
+  ): Promise<CreatePodcastOutput> {
+    const podcastlist = await this.getAll();
+    let podcastId;
+    if (podcastlist.length > 0) {
+      podcastId = podcastlist[0].id;
+      podcastlist.forEach((el) => {
+        if (podcastId < el.id) {
+          podcastId = el.id;
         }
       });
-      this.podcasts.push({
-        id: maxPodcastId + 1,
-        title,
-        category,
-        rating,
-        episodes: [],
-      });
     } else {
-      this.podcasts.push({
-        id: this.podcasts.length + 1,
-        title,
-        category,
-        rating,
-        episodes: [],
-      });
+      podcastId = podcastlist.length + 1;
     }
+
+    const newPodcast = this.podcastRepository.create(createPodcastInput);
+    newPodcast.id = podcastId;
+    await this.podcastRepository.save(newPodcast);
     return { ok: true };
   }
-  updatePodcast({
+
+  async updatePodcast({
     id,
-    title,
-    category,
-    rating,
-  }: UpdatePodcastInput): UpdatePodcastOutput {
-    const podcast = this.getOne(id);
-    this.removePodcast({ id: podcast.id });
-    this.podcasts.push({ ...podcast, title, category, rating });
+    ...rest
+  }: UpdatePodcastInput): Promise<UpdatePodcastOutput> {
+    await this.podcastRepository.update(id, {
+      ...rest,
+    });
     return { ok: true };
   }
 
-  removePodcast({ id }: DeletePodcastInput): DeletePodcastOutput {
-    this.getOne(id);
-    this.podcasts = this.podcasts.filter((el) => el.id !== id);
+  async removePodcast({
+    id,
+  }: DeletePodcastInput): Promise<DeletePodcastOutput> {
+    await this.getOne(id);
+    await this.podcastRepository.delete(id);
     return { ok: true };
   }
 
-  getAllEpisodes({ id }: AllEpisodesInput): AllEpisodesOutput {
-    const podcast = this.getOne(id);
-    if (!podcast.episodes) {
-      return { ok: true, episodes: [] };
-    }
-    return { ok: true, episodes: podcast.episodes };
+  async getAllEpisodes({ id }: AllEpisodesInput): Promise<AllEpisodesOutput> {
+    const episodes = await this.episodeRepository
+      .createQueryBuilder('episode')
+      .leftJoin('episode.podcast', 'podcast')
+      .where('podcast.id = :id', { id })
+      .getMany();
+    return { ok: true, episodes };
   }
 
-  getEpisode({ podcastId, id }: MyEpisodeInput): MyEpisodeOutput {
-    const episodes = this.getAllEpisodes({ id: podcastId }).episodes;
-    const episode = episodes.find((el) => el.id === id);
-    return episode;
+  async getEpisode({
+    podcastId,
+    id,
+  }: MyEpisodeInput): Promise<MyEpisodeOutput> {
+    const episodes = await this.episodeRepository
+      .createQueryBuilder('episode')
+      .leftJoin('episode.podcast', 'podcast')
+      .where('podcast.id = :podcastId and episode.id = :episodeId', {
+        podcastId,
+        episodeId: id,
+      })
+      .getOne();
+    return episodes;
   }
 
-  createEpisode({
+  async createEpisode({
     podcastId,
     story,
     title,
-  }: CreateEpisodeInput): CreateEpisodeOutput {
-    const podcast = this.getOne(podcastId);
-    if (podcast.episodes === undefined || podcast.episodes.length <= 0) {
-      podcast.episodes = [{ id: 1, story, title }];
-    } else {
-      let maxEpisodeId = podcast.episodes[0].id;
-      podcast.episodes.forEach((el) => {
-        if (maxEpisodeId < el.id) {
-          maxEpisodeId = el.id;
-        }
-      });
-      podcast.episodes.push({ id: maxEpisodeId + 1, story, title });
-    }
+  }: CreateEpisodeInput): Promise<CreateEpisodeOutput> {
+    const podcast = await this.getOne(podcastId);
+
+    await this.episodeRepository.save(
+      this.episodeRepository.create({ story, title, podcast }),
+    );
     return { ok: true };
   }
 
-  updateEpisode({
+  async updateEpisode({
     podcastId,
     id,
-    story,
-    title,
-  }: UpdateEpisodeInput): UpdateEpisodeOutput {
-    const podcast = this.getOne(podcastId);
-    const episode = podcast.episodes.find((el) => el.id === id);
-    if (!episode) {
-      throw new NotFoundException();
-    }
-    this.removeEpisode({ podcastId, id });
-    podcast.episodes.push({ ...episode, id, story, title });
+    ...rest
+  }: UpdateEpisodeInput): Promise<UpdateEpisodeOutput> {
+    const podcast = await this.getOne(podcastId);
+    await this.episodeRepository.update({ podcast, id }, { ...rest });
     return { ok: true };
   }
 
-  removeEpisode({ podcastId, id }: DeleteEpisodeInput): DeleteEpisodeOutput {
-    const podcast = this.getOne(podcastId);
-    const episode = podcast.episodes.find((el) => el.id === id);
-    podcast.episodes = podcast.episodes.filter((el) => el.id !== episode.id);
+  async removeEpisode({
+    podcastId,
+    id,
+  }: DeleteEpisodeInput): Promise<DeleteEpisodeOutput> {
+    const podcast = await this.getOne(podcastId);
+    await this.episodeRepository.delete({ id, podcast });
     return { ok: true };
   }
 }

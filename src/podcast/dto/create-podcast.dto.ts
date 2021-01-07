@@ -1,22 +1,13 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsNumber, IsString, Length } from 'class-validator';
+import { InputType, ObjectType, PickType } from '@nestjs/graphql';
+import { Podcast } from '../entities/podcast.entity';
 import { CoreOutput } from './core/core.dto';
 
 @InputType()
-export class CreatePodcastInput {
-  @Field((type) => String)
-  @IsString()
-  readonly title: string;
-
-  @Field((type) => String)
-  @IsString()
-  @Length(5, 10)
-  readonly category: string;
-
-  @Field((type) => Number)
-  @IsNumber()
-  readonly rating: number;
-}
+export class CreatePodcastInput extends PickType(
+  Podcast,
+  ['title', 'category', 'rating'],
+  InputType,
+) {}
 
 @ObjectType()
 export class CreatePodcastOutput extends CoreOutput {}

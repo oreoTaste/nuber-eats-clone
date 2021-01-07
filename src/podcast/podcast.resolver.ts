@@ -34,8 +34,6 @@ import {
   UpdatePodcastInput,
   UpdatePodcastOutput,
 } from './dto/update-podcast.dto';
-import { Episode } from './entities/episode.entity';
-import { Podcast } from './entities/podcast.entity';
 import { PodcastService } from './podcast.service';
 
 @Resolver()
@@ -43,37 +41,37 @@ export class PodcastResolver {
   constructor(private readonly podcastService: PodcastService) {}
 
   @Query(() => AllPodcastsOutput)
-  showAllPodcasts(): AllPodcastsOutput {
-    return this.podcastService.getAllPodcasts();
+  async showAllPodcasts(): Promise<AllPodcastsOutput> {
+    return await this.podcastService.getAllPodcasts();
   }
 
   @Query(() => MyPodcastOutput)
-  showPodcast(
+  async showPodcast(
     @Args('MyPodcastInput') myPodcastInput: MyPodcastInput,
-  ): MyPodcastOutput {
-    return this.podcastService.getPodcast(myPodcastInput);
+  ): Promise<MyPodcastOutput> {
+    return await this.podcastService.getPodcast(myPodcastInput);
   }
 
   @Mutation(() => CreatePodcastOutput)
-  createPodcast(
+  async createPodcast(
     @Args('CreatePodcastInput') createPodcastInput: CreatePodcastInput,
-  ): CreatePodcastOutput {
-    return this.podcastService.createPodcast(createPodcastInput);
+  ): Promise<CreatePodcastOutput> {
+    return await this.podcastService.createPodcast(createPodcastInput);
   }
 
   @Mutation(() => UpdatePodcastOutput)
-  updatePodcast(
+  async updatePodcast(
     @Args('updatePodcastInput') updatePodcastInput: UpdatePodcastInput,
-  ): UpdatePodcastOutput {
+  ): Promise<UpdatePodcastOutput> {
     console.log(updatePodcastInput);
-    return this.podcastService.updatePodcast(updatePodcastInput);
+    return await this.podcastService.updatePodcast(updatePodcastInput);
   }
 
   @Mutation(() => DeletePodcastOutput)
-  deletePodcast(
+  async deletePodcast(
     @Args('deletePodcastInput') deletePodcastInput: DeletePodcastInput,
-  ): DeletePodcastOutput {
-    return this.podcastService.removePodcast(deletePodcastInput);
+  ): Promise<DeletePodcastOutput> {
+    return await this.podcastService.removePodcast(deletePodcastInput);
   }
 }
 
@@ -82,37 +80,37 @@ export class EpisodeResolver {
   constructor(private readonly podcastService: PodcastService) {}
 
   @Query(() => AllEpisodesOutput)
-  showAllEpisodes(
+  async showAllEpisodes(
     @Args('AllEpisodesInput') allEpisodesInput: AllEpisodesInput,
-  ): AllEpisodesOutput {
-    return this.podcastService.getAllEpisodes(allEpisodesInput);
+  ): Promise<AllEpisodesOutput> {
+    return await this.podcastService.getAllEpisodes(allEpisodesInput);
   }
 
   @Query(() => MyEpisodeOutput)
-  showEpisode(
+  async showEpisode(
     @Args('MyEpisodeInput') myEpisodeInput: MyEpisodeInput,
-  ): MyEpisodeOutput {
-    return this.podcastService.getEpisode(myEpisodeInput);
+  ): Promise<MyEpisodeOutput> {
+    return await this.podcastService.getEpisode(myEpisodeInput);
   }
 
   @Mutation(() => CreateEpisodeOutput)
-  createEpisode(
+  async createEpisode(
     @Args('CreateEpisodeInput') createEpisodeInput: CreateEpisodeInput,
-  ): CreateEpisodeOutput {
-    return this.podcastService.createEpisode(createEpisodeInput);
+  ): Promise<CreateEpisodeOutput> {
+    return await this.podcastService.createEpisode(createEpisodeInput);
   }
 
   @Mutation(() => UpdateEpisodeOutput)
-  updateEpisode(
+  async updateEpisode(
     @Args('UpdateEpisodeInput') updateEpisodeInput: UpdateEpisodeInput,
-  ): UpdateEpisodeOutput {
-    return this.podcastService.updateEpisode(updateEpisodeInput);
+  ): Promise<UpdateEpisodeOutput> {
+    return await this.podcastService.updateEpisode(updateEpisodeInput);
   }
 
   @Mutation(() => DeleteEpisodeOutput)
-  deleteEpisode(
+  async deleteEpisode(
     @Args('DeleteEpisodeInput') deleteEpisodeInput: DeleteEpisodeInput,
-  ): DeleteEpisodeOutput {
-    return this.podcastService.removeEpisode(deleteEpisodeInput);
+  ): Promise<DeleteEpisodeOutput> {
+    return await this.podcastService.removeEpisode(deleteEpisodeInput);
   }
 }
