@@ -6,6 +6,7 @@ import { PodcastModule } from './podcast/podcast.module';
 import * as Joi from 'joi';
 import { Episode } from './podcast/entities/episode.entity';
 import { Podcast } from './podcast/entities/podcast.entity';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -35,8 +36,10 @@ import { Podcast } from './podcast/entities/podcast.entity';
       synchronize: process.env.NODE_ENV === 'dev',
       logging: true,
       entities: [Episode, Podcast],
+      dropSchema: true,
     }),
     PodcastModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],

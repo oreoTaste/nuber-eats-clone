@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -49,118 +53,158 @@ export class PodcastService {
   ) {}
 
   async getAll(): Promise<Podcast[]> {
-    try {
-      return await this.podcastRepository.find({ take: 3000 });
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
+    return await this.podcastRepository.find({ take: 3000 });
   }
 
   async getOne(id: number): Promise<Podcast> {
-    try {
-      return await this.podcastRepository.findOne(id);
-    } catch (e) {
-      console.log(e);
-      return null;
+    const podcast = await this.podcastRepository.findOne(id);
+    if (podcast == undefined || podcast === null) {
+      throw new NotFoundException(
+        `Couldn't find podcast with the podcast id: ${id}`,
+      );
     }
+    return podcast;
   }
 
   async getAllPodcasts(): Promise<AllPodcastsOutput> {
-    const podcasts = await this.podcastRepository
-      .createQueryBuilder('podcast')
-      .leftJoinAndSelect('podcast.episodes', 'episodes')
-      .getMany();
-    return { podcasts, ok: true };
+    try {
+      const podcasts = await this.podcastRepository
+        .createQueryBuilder('podcast')
+        .leftJoinAndSelect('podcast.episodes', 'episodes')
+        .getMany();
+      if (podcasts.length <= 0) {
+        throw new NotFoundException("Couldn't find any podcast");
+      }
+      return { podcasts, ok: true };
+    } catch (e) {
+      return { error: e.message, ok: false, podcasts: null };
+    }
   }
 
   async getPodcast({ id }: MyPodcastInput): Promise<MyPodcastOutput> {
-    const podcast = await this.podcastRepository
-      .createQueryBuilder('podcast')
-      .leftJoinAndSelect('podcast.episodes', 'episodes')
-      .where('podcast.id = :id', { id })
-      .getOne();
-    if (!podcast) {
-      throw new NotFoundException(`Podcast id : ${id} is not found`);
+    try {
+      const podcast = await this.podcastRepository
+        .createQueryBuilder('podcast')
+        .leftJoinAndSelect('podcast.episodes', 'episodes')
+        .where('podcast.id = :id', { id })
+        .getOne();
+      if (!podcast) {
+        throw new NotFoundException(`Podcast id : ${id} is not found`);
+      }
+      return { podcast, ok: true };
+    } catch (e) {
+      return { podcast: null, ok: false, error: e.message };
     }
-    return { podcast, ok: true };
   }
 
   async createPodcast(
     createPodcastInput: CreatePodcastInput,
   ): Promise<CreatePodcastOutput> {
-    const podcastlist = await this.getAll();
-    let podcastId;
-    if (podcastlist.length > 0) {
-      podcastId = podcastlist[0].id;
-      podcastlist.forEach((el) => {
-        if (podcastId < el.id) {
-          podcastId = el.id;
-        }
-      });
-    } else {
-      podcastId = podcastlist.length + 1;
+    try {
+      const newPodcast = this.podcastRepository.create(createPodcastInput);
+      await this.podcastRepository.save(newPodcast);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message };
     }
-
-    const newPodcast = this.podcastRepository.create(createPodcastInput);
-    newPodcast.id = podcastId;
-    await this.podcastRepository.save(newPodcast);
-    return { ok: true };
   }
 
   async updatePodcast({
     id,
     ...rest
   }: UpdatePodcastInput): Promise<UpdatePodcastOutput> {
-    await this.podcastRepository.update(id, {
-      ...rest,
-    });
-    return { ok: true };
+    try {
+      await this.getOne(id);
+      await this.podcastRepository.update(id, {
+        ...rest,
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 
   async removePodcast({
     id,
   }: DeletePodcastInput): Promise<DeletePodcastOutput> {
-    await this.getOne(id);
-    await this.podcastRepository.delete(id);
-    return { ok: true };
+    try {
+      await this.getOne(id);
+
+      const result = await (await this.podcastRepository.delete(id)).affected;
+      if (result <= 0) {
+        throw new NotImplementedException(
+          "Couldn't remove podcast for some reason",
+        );
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 
   async getAllEpisodes({ id }: AllEpisodesInput): Promise<AllEpisodesOutput> {
-    const episodes = await this.episodeRepository
-      .createQueryBuilder('episode')
-      .leftJoin('episode.podcast', 'podcast')
-      .where('podcast.id = :id', { id })
-      .getMany();
-    return { ok: true, episodes };
+    try {
+      const episodes = await this.episodeRepository
+        .createQueryBuilder('episode')
+        .leftJoin('episode.podcast', 'podcast')
+        .where('podcast.id = :id', { id })
+        .getMany();
+      if (episodes.length <= 0) {
+        throw new NotFoundException(
+          `Couldn't find episode with the podcast ${id}`,
+        );
+      }
+      return { ok: true, episodes };
+    } catch (e) {
+      return { episodes: null, ok: false, error: e.message };
+    }
   }
 
   async getEpisode({
     podcastId,
     id,
   }: MyEpisodeInput): Promise<MyEpisodeOutput> {
-    const episodes = await this.episodeRepository
-      .createQueryBuilder('episode')
-      .leftJoin('episode.podcast', 'podcast')
-      .where('podcast.id = :podcastId and episode.id = :episodeId', {
-        podcastId,
-        episodeId: id,
-      })
-      .getOne();
-    return episodes;
+    try {
+      const episode = await this.episodeRepository
+        .createQueryBuilder('episode')
+        .leftJoin('episode.podcast', 'podcast')
+        .where('podcast.id = :podcastId and episode.id = :episodeId', {
+          podcastId,
+          episodeId: id,
+        })
+        .getOne();
+      if (episode === undefined || episode === null) {
+        throw new NotFoundException(
+          `Couldn't find episode with the podcast id ${podcastId}and episode id : ${id}`,
+        );
+      }
+      return { episode, ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message, episode: null };
+    }
   }
 
   async createEpisode({
     podcastId,
-    story,
-    title,
+    ...rest
   }: CreateEpisodeInput): Promise<CreateEpisodeOutput> {
-    const podcast = await this.getOne(podcastId);
+    try {
+      const podcast = await this.getOne(podcastId);
 
-    await this.episodeRepository.save(
-      this.episodeRepository.create({ story, title, podcast }),
-    );
-    return { ok: true };
+      if (podcast === null || podcast === undefined) {
+        throw new NotImplementedException(
+          `Couldn't find podcast with podcast id : ${podcastId} to create episode`,
+        );
+      }
+      await this.episodeRepository
+        .save(this.episodeRepository.create({ ...rest, podcast }))
+        .then((resp) => {
+          console.log(resp);
+        });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 
   async updateEpisode({
@@ -168,17 +212,36 @@ export class PodcastService {
     id,
     ...rest
   }: UpdateEpisodeInput): Promise<UpdateEpisodeOutput> {
-    const podcast = await this.getOne(podcastId);
-    await this.episodeRepository.update({ podcast, id }, { ...rest });
-    return { ok: true };
+    try {
+      const podcast = await this.getOne(podcastId);
+      const result = await (
+        await this.episodeRepository.update({ podcast, id }, { ...rest })
+      ).affected;
+      if (result > 0) {
+        return { ok: true };
+      } else {
+        throw new NotImplementedException('Nothing Updated');
+      }
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 
   async removeEpisode({
     podcastId,
     id,
   }: DeleteEpisodeInput): Promise<DeleteEpisodeOutput> {
-    const podcast = await this.getOne(podcastId);
-    await this.episodeRepository.delete({ id, podcast });
-    return { ok: true };
+    try {
+      const podcast = await this.getOne(podcastId);
+      const result = await (
+        await this.episodeRepository.delete({ id, podcast })
+      ).affected;
+      if (result < 0) {
+        throw new NotImplementedException('Nothing Removed');
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 }

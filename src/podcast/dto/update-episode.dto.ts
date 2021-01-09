@@ -6,8 +6,8 @@ import {
   PartialType,
   PickType,
 } from '@nestjs/graphql';
+import { CoreOutput } from 'src/common/dto/core.dto';
 import { Episode } from '../entities/episode.entity';
-import { CoreOutput } from './core/core.dto';
 
 @InputType()
 export class UpdateEpisodeInput extends PartialType(

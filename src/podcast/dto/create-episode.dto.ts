@@ -1,11 +1,18 @@
-import { Field, InputType, Int, ObjectType, PickType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  OmitType,
+  PickType,
+} from '@nestjs/graphql';
 import { Episode } from '../entities/episode.entity';
-import { CoreOutput } from './core/core.dto';
+import { CoreOutput } from 'src/common/dto/core.dto';
 
 @InputType()
-export class CreateEpisodeInput extends PickType(
+export class CreateEpisodeInput extends OmitType(
   Episode,
-  ['story', 'title'],
+  ['id', 'updatedAt', 'createdAt'],
   InputType,
 ) {
   @Field(() => Int)

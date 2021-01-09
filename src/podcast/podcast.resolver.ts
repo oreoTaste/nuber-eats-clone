@@ -34,9 +34,11 @@ import {
   UpdatePodcastInput,
   UpdatePodcastOutput,
 } from './dto/update-podcast.dto';
+import { Episode } from './entities/episode.entity';
+import { Podcast } from './entities/podcast.entity';
 import { PodcastService } from './podcast.service';
 
-@Resolver()
+@Resolver((of) => Podcast)
 export class PodcastResolver {
   constructor(private readonly podcastService: PodcastService) {}
 
@@ -75,7 +77,7 @@ export class PodcastResolver {
   }
 }
 
-@Resolver()
+@Resolver((of) => Episode)
 export class EpisodeResolver {
   constructor(private readonly podcastService: PodcastService) {}
 

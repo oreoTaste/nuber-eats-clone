@@ -1,7 +1,7 @@
 import { Field, InputType, Int, ObjectType, PickType } from '@nestjs/graphql';
 import { Episode } from '../entities/episode.entity';
 import { Podcast } from '../entities/podcast.entity';
-import { CoreOutput } from './core/core.dto';
+import { CoreOutput } from '../../common/dto/core.dto';
 import { EpisodePartialOutput } from './core/core.podcast.dto';
 
 @InputType()
@@ -14,10 +14,13 @@ export class MyEpisodeInput extends PickType(Episode, ['id'], InputType) {
 export class AllEpisodesInput extends PickType(Podcast, ['id'], InputType) {}
 
 @ObjectType()
-export class MyEpisodeOutput extends EpisodePartialOutput {}
+export class MyEpisodeOutput extends CoreOutput {
+  @Field(() => EpisodePartialOutput, { nullable: true })
+  episode: EpisodePartialOutput;
+}
 
 @ObjectType()
 export class AllEpisodesOutput extends CoreOutput {
-  @Field(() => [EpisodePartialOutput])
+  @Field(() => [EpisodePartialOutput], { nullable: true })
   episodes: EpisodePartialOutput[];
 }

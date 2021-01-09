@@ -1,6 +1,6 @@
 import { Field, InputType, Int, ObjectType, PickType } from '@nestjs/graphql';
+import { CoreOutput } from 'src/common/dto/core.dto';
 import { Episode } from '../entities/episode.entity';
-import { CoreOutput } from './core/core.dto';
 
 @InputType()
 export class DeleteEpisodeInput extends PickType(Episode, ['id'], InputType) {

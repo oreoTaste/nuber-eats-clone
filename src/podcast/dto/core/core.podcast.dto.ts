@@ -1,6 +1,6 @@
-import { InputType, ObjectType, PartialType } from '@nestjs/graphql';
-import { Episode } from '../../entities/episode.entity';
-import { Podcast } from '../../entities/podcast.entity';
+import { ObjectType, PartialType } from '@nestjs/graphql';
+import { Episode } from 'src/podcast/entities/episode.entity';
+import { Podcast } from 'src/podcast/entities/podcast.entity';
 
 @ObjectType()
 export class PodcastPartialOutput extends PartialType(Podcast, ObjectType) {}
