@@ -1,5 +1,4 @@
 import {
-  Inject,
   MiddlewareConsumer,
   Module,
   NestModule,
@@ -12,11 +11,11 @@ import { PodcastModule } from './podcast/podcast.module';
 import * as Joi from 'joi';
 import { Episode } from './podcast/entities/episode.entity';
 import { Podcast } from './podcast/entities/podcast.entity';
-import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { Users } from './users/entities/users.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -48,14 +47,14 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
       synchronize: process.env.NODE_ENV === 'dev',
       logging: true,
       entities: [Episode, Podcast, Users],
-      dropSchema: true,
+      // dropSchema: true,
     }),
     PodcastModule,
-    CommonModule,
     UsersModule,
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
     }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],
