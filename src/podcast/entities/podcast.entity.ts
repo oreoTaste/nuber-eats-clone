@@ -1,8 +1,6 @@
 import {
   Field,
-  Float,
   InputType,
-  Int,
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';

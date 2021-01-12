@@ -16,6 +16,7 @@ import { Users } from './users/entities/users.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
+import { Verification } from './users/entities/verification.entity';
 
 @Module({
   imports: [
@@ -46,8 +47,8 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV === 'dev',
       logging: true,
-      entities: [Episode, Podcast, Users],
-      // dropSchema: true,
+      entities: [Episode, Podcast, Users, Verification],
+      dropSchema: true,
     }),
     PodcastModule,
     UsersModule,

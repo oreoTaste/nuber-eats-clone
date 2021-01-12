@@ -11,6 +11,8 @@ import { JwtService } from 'src/jwt/jwt.service';
 import { LoginInput, LoginOutput } from './dto/login-users.dto';
 import { EditUserInput } from './dto/edit-users.dto';
 import { ProfileOutput } from './dto/profile-users.dto';
+import { Verification } from './entities/verification.entity';
+import { VerificationInput, VerificationOutput } from './dto/verification.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +20,8 @@ export class UsersService {
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
     private readonly jwtService: JwtService,
+    @InjectRepository(Verification)
+    private readonly verificationRepository: Repository<Verification>,
   ) {}
 
   async findById(id: number): Promise<Users> {
@@ -42,8 +46,11 @@ export class UsersService {
 
   async join(createUserInput: CreateUserInput): Promise<CreateUserOutput> {
     try {
-      const user = this.usersRepository.save(
+      const user = await this.usersRepository.save(
         this.usersRepository.create({ ...createUserInput }),
+      );
+      await this.verificationRepository.save(
+        this.verificationRepository.create({ user }),
       );
       if (user === undefined) {
         throw new NotImplementedException(
@@ -65,9 +72,34 @@ export class UsersService {
       await this.usersRepository.save(
         this.usersRepository.create({ ...user, ...editUserInput }),
       );
+
       return { ok: true, user: await this.usersRepository.findOne(id) };
     } catch (e) {
       return { ok: false, error: e.message, user: null };
+    }
+  }
+
+  async verifyEmail(code: string): Promise<VerificationOutput> {
+    const verification = await this.verificationRepository.findOne(
+      { code },
+      { relations: ['user'] },
+    );
+    try {
+      if (!verification) {
+        throw new NotImplementedException(
+          "Couldn't find User with the verification code",
+        );
+      }
+      verification.user.verified = true;
+      this.usersRepository.save(verification.user);
+
+      await this.verificationRepository.delete({ id: verification.id });
+      return { ok: true, user: verification.user };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e.message,
+      };
     }
   }
 }

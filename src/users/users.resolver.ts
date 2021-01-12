@@ -6,6 +6,7 @@ import { CreateUserInput, CreateUserOutput } from './dto/create-users.dto';
 import { EditUserInput } from './dto/edit-users.dto';
 import { LoginInput, LoginOutput } from './dto/login-users.dto';
 import { ProfileInput, ProfileOutput } from './dto/profile-users.dto';
+import { VerificationInput, VerificationOutput } from './dto/verification.dto';
 import { Users } from './entities/users.entity';
 import { UsersService } from './users.service';
 
@@ -59,12 +60,19 @@ export class UsersResolver {
   @UseGuards(AuthGuard) // 로그인 되어있는지 확인
   async editProfile(
     @Args('EditUserInput') editUserInput: EditUserInput,
-    @AuthUser() AuthUser,
+    @AuthUser() authUser,
   ): Promise<ProfileOutput> {
     try {
-      return await this.usersService.edit(editUserInput, AuthUser.id);
+      return await this.usersService.edit(editUserInput, authUser.id);
     } catch (e) {
       return { ok: false, error: e.message, user: null };
     }
+  }
+
+  @Mutation(() => VerificationOutput)
+  async verifyEmail(
+    @Args('VerificationInput') verificationInput: VerificationInput,
+  ): Promise<VerificationOutput> {
+    return await this.usersService.verifyEmail(verificationInput.code);
   }
 }
