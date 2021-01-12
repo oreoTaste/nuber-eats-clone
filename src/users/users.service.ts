@@ -27,7 +27,8 @@ export class UsersService {
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
       const user = await this.usersRepository.findOne({ email });
-      if (!user || !user.checkPassword(password)) {
+      const identical = await user.checkPassword(password);
+      if (!user || !identical) {
         throw new NotFoundException(
           "Couldn't find user with the email and password given",
         );
@@ -55,16 +56,15 @@ export class UsersService {
     }
   }
 
-  async edit(editUserInput: EditUserInput, context): Promise<ProfileOutput> {
-    const id = context['user']['id'];
-    const user = await this.usersRepository.findOne(id);
+  async edit(editUserInput: EditUserInput, id: number): Promise<ProfileOutput> {
     try {
-      const result = (
-        await this.usersRepository.update(user.id, { ...editUserInput })
-      ).affected;
-      if (result <= 0) {
+      const user = await this.usersRepository.findOne(id);
+      if (!user) {
         throw new NotImplementedException('Failed to edit user info');
       }
+      await this.usersRepository.save(
+        this.usersRepository.create({ ...user, ...editUserInput }),
+      );
       return { ok: true, user: await this.usersRepository.findOne(id) };
     } catch (e) {
       return { ok: false, error: e.message, user: null };

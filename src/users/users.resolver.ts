@@ -1,5 +1,5 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { NotFoundException, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateUserInput, CreateUserOutput } from './dto/create-users.dto';
@@ -30,21 +30,22 @@ export class UsersResolver {
   @Query(() => ProfileOutput)
   @UseGuards(AuthGuard)
   me(@AuthUser() authUser): ProfileOutput {
-    if (authUser) {
-      return { ok: true, user: authUser };
-    } else
-      return { ok: false, error: '사용자정보가 옳지 않습니다', user: null };
+    return { ok: Boolean(authUser), user: authUser };
   }
 
   @Query(() => ProfileOutput)
-  @UseGuards(AuthGuard)
-  async seeProfile(
-    /*@Context() context*/ @Args() profileInput: ProfileInput,
-  ): Promise<ProfileOutput> {
+  @UseGuards(AuthGuard) // 로그인 되어있는지 확인
+  async seeProfile(@Args() profileInput: ProfileInput): Promise<ProfileOutput> {
     try {
+      const user = await this.usersService.findById(profileInput.id);
+      if (!user) {
+        throw new NotFoundException(
+          `Couldn't find the user with the id: ${profileInput.id}`,
+        );
+      }
       return {
-        ok: true,
-        user: await this.usersService.findById(profileInput.id),
+        ok: Boolean(user),
+        user: user,
       };
     } catch (e) {
       return {
@@ -55,10 +56,15 @@ export class UsersResolver {
   }
 
   @Mutation(() => ProfileOutput)
-  editProfile(
+  @UseGuards(AuthGuard) // 로그인 되어있는지 확인
+  async editProfile(
     @Args('EditUserInput') editUserInput: EditUserInput,
-    @Context() context,
+    @AuthUser() AuthUser,
   ): Promise<ProfileOutput> {
-    return this.usersService.edit(editUserInput, context);
+    try {
+      return await this.usersService.edit(editUserInput, AuthUser.id);
+    } catch (e) {
+      return { ok: false, error: e.message, user: null };
+    }
   }
 }
