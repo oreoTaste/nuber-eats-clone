@@ -12,7 +12,8 @@ import { LoginInput, LoginOutput } from './dto/login-users.dto';
 import { EditUserInput } from './dto/edit-users.dto';
 import { ProfileOutput } from './dto/profile-users.dto';
 import { Verification } from './entities/verification.entity';
-import { VerificationInput, VerificationOutput } from './dto/verification.dto';
+import { VerificationOutput } from './dto/verification.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -22,15 +23,19 @@ export class UsersService {
     private readonly jwtService: JwtService,
     @InjectRepository(Verification)
     private readonly verificationRepository: Repository<Verification>,
+    private readonly mailService: MailService,
   ) {}
 
   async findById(id: number): Promise<Users> {
-    return this.usersRepository.findOne(id);
+    return this.usersRepository.findOne(id, {});
   }
 
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
-      const user = await this.usersRepository.findOne({ email });
+      const user = await this.usersRepository.findOne(
+        { email },
+        { select: ['password', 'id'] },
+      );
       const identical = await user.checkPassword(password);
       if (!user || !identical) {
         throw new NotFoundException(
@@ -49,7 +54,7 @@ export class UsersService {
       const user = await this.usersRepository.save(
         this.usersRepository.create({ ...createUserInput }),
       );
-      await this.verificationRepository.save(
+      const verification = await this.verificationRepository.save(
         this.verificationRepository.create({ user }),
       );
       if (user === undefined) {
@@ -57,6 +62,11 @@ export class UsersService {
           "Could't save user with the infos given",
         );
       }
+      this.mailService.sendVerificationEmail(
+        [user.email],
+        user.name,
+        verification.code,
+      );
       return { ok: true };
     } catch (e) {
       return { ok: false, error: e.message };
@@ -69,9 +79,20 @@ export class UsersService {
       if (!user) {
         throw new NotImplementedException('Failed to edit user info');
       }
-      await this.usersRepository.save(
+
+      const savedUser = await this.usersRepository.save(
         this.usersRepository.create({ ...user, ...editUserInput }),
       );
+      const verification = await this.verificationRepository.findOne({
+        user: savedUser,
+      });
+      if (editUserInput.email) {
+        this.mailService.sendVerificationEmail(
+          [savedUser.email],
+          savedUser.name,
+          verification.code,
+        );
+      }
 
       return { ok: true, user: await this.usersRepository.findOne(id) };
     } catch (e) {
@@ -95,6 +116,26 @@ export class UsersService {
 
       await this.verificationRepository.delete({ id: verification.id });
       return { ok: true, user: verification.user };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e.message,
+      };
+    }
+  }
+
+  async seeProfile(id: number): Promise<ProfileOutput> {
+    try {
+      const user = await this.findById(id);
+      if (!user) {
+        throw new NotFoundException(
+          `Couldn't find the user with the id: ${id}`,
+        );
+      }
+      return {
+        ok: Boolean(user),
+        user: user,
+      };
     } catch (e) {
       return {
         ok: false,
