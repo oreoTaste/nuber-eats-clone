@@ -5,11 +5,9 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToOne } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { IsEnum, IsString } from 'class-validator';
-import { Verification } from './verification.entity';
-import { boolean } from 'joi';
 
 enum UserRole {
   'host',
