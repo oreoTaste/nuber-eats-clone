@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   NotImplementedException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -36,8 +37,15 @@ export class UsersService {
         { email },
         { select: ['password', 'id'] },
       );
+      if (!user) {
+        // wrong id
+        throw new NotFoundException(
+          "Couldn't find user with the email and password given",
+        );
+      }
       const identical = await user.checkPassword(password);
-      if (!user || !identical) {
+      if (!identical) {
+        // wrong password
         throw new NotFoundException(
           "Couldn't find user with the email and password given",
         );
@@ -51,6 +59,15 @@ export class UsersService {
 
   async join(createUserInput: CreateUserInput): Promise<CreateUserOutput> {
     try {
+      const exist = await this.usersRepository.findOne(
+        { email: createUserInput.email },
+        {},
+      );
+      if (exist) {
+        throw new UnauthorizedException(
+          'Found duplicate User of the email given',
+        );
+      }
       const user = await this.usersRepository.save(
         this.usersRepository.create({ ...createUserInput }),
       );

@@ -58,7 +58,7 @@ export class PodcastService {
 
   async getOne(id: number): Promise<Podcast> {
     const podcast = await this.podcastRepository.findOne(id);
-    if (podcast == undefined || podcast === null) {
+    if (podcast === undefined || podcast === null) {
       throw new NotFoundException(
         `Couldn't find podcast with the podcast id: ${id}`,
       );
