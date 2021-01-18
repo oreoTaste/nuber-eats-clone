@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -66,6 +65,7 @@ describe('PodcastService', () => {
       expect(podcastRepository.findOne).toHaveBeenCalledTimes(1);
     });
   });
+
   it.todo('getAllPodcasts');
   it.todo('getPodcast');
   it.todo('createPodcast');

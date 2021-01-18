@@ -92,6 +92,9 @@ export class UsersService {
 
   async edit(editUserInput: EditUserInput, id: number): Promise<ProfileOutput> {
     try {
+      if (Object.keys(editUserInput).length <= 0) {
+        throw new NotFoundException('Found Nothing to update');
+      }
       const user = await this.usersRepository.findOne(id);
       if (!user) {
         throw new NotImplementedException('Failed to edit user info');
@@ -103,7 +106,7 @@ export class UsersService {
       const verification = await this.verificationRepository.findOne({
         user: savedUser,
       });
-      if (editUserInput.email) {
+      if (editUserInput.email && verification) {
         this.mailService.sendVerificationEmail(
           [savedUser.email],
           savedUser.name,
@@ -129,7 +132,7 @@ export class UsersService {
         );
       }
       verification.user.verified = true;
-      this.usersRepository.save(verification.user);
+      await this.usersRepository.save(verification.user);
 
       await this.verificationRepository.delete({ id: verification.id });
       return { ok: true, user: verification.user };

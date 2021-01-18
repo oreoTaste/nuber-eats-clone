@@ -34,8 +34,9 @@ export class MailService {
         method: 'POST',
         body: form,
       });
+      return true;
     } catch (e) {
-      console.log(e.message);
+      return false;
     }
   }
 
