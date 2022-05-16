@@ -1,0 +1,13 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Restaurant {
+  id: Float!
+  name: String!
+  isGood: Boolean!
+}
+
+type Query {
+  BestRestaurants(id: Float!, name: String!, isGood: Boolean!): Restaurant!
+}

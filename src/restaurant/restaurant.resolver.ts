@@ -1,23 +1,16 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Restaurant } from './entities/restaurant.entity';
+import { Args, InputType, ObjectType, Query, Resolver } from "@nestjs/graphql";
+import { RestaurantDto } from "./dto/restaurant.dto";
+import { Restaurant } from "./entity/restaurant.entity";
 
-@Resolver((_) => Restaurant)
+@Resolver()
 export class RestaurantResolver {
-  @Query(() => Restaurant)
-  myRestaurant (@Args('id') id : Number) : Restaurant{
-    console.log(id)
-    let r = new Restaurant()
-    r.isGood = true
-    r.name = "myRestaurant"
-    return r;
-  }
 
-  @Query(() => Restaurant)
-  myRestaurant2() {
-    let r = new Restaurant()
-    r.isGood = false
-    r.name = "myRestaurant2"
-    return r;
-  }
-
+    @Query(() => Restaurant)
+    BestRestaurants(@Args() restaurant : RestaurantDto) : Restaurant {
+        let r = new Restaurant()
+        r.id = restaurant.id
+        r.name = restaurant.name
+        r.isGood = true
+        return r
+    }
 }
