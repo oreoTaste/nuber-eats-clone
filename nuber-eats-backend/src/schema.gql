@@ -1,0 +1,19 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Restaurant {
+  name: String!
+  isGood: Boolean
+}
+
+type Query {
+  allRestaurants(name: String!): [Restaurant!]!
+  isMine1(name: String!, isGood: Boolean): Boolean!
+  isMine2(restaurant: RestaurantInput!): Boolean!
+}
+
+input RestaurantInput {
+  name: String!
+  isGood: Boolean
+}
