@@ -3,17 +3,14 @@
 # ------------------------------------------------------
 
 type Restaurant {
-  name: String!
-  isGood: Boolean
+  id: Float!
+  name: String
 }
 
 type Query {
-  allRestaurants(name: String!): [Restaurant!]!
-  isMine1(name: String!, isGood: Boolean): Boolean!
-  isMine2(restaurant: RestaurantInput!): Boolean!
+  myRestaurant(name: String!): [Restaurant!]!
 }
 
-input RestaurantInput {
-  name: String!
-  isGood: Boolean
+type Mutation {
+  createRestaurant(name: String): Boolean!
 }

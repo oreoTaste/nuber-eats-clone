@@ -5,8 +5,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RestaurantModule } from './restaurant/restaurant.module';
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { RestaurantModule } from './restaurant/restaurant.module';
+import { Restaurant } from './restaurant/entities/restaurant.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -18,7 +19,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       database: "nuber-eats",
       synchronize: true,
       logging: true,
-      entities: ['dist/**/*.entity{.ts,.js}'],
+      entities: [Restaurant],
       subscribers: [],
       migrations: [],
   }),
@@ -26,7 +27,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       playground: true}),
-    RestaurantModule
+    RestaurantModule,
   ],
   controllers: [AppController],
   providers: [AppService],
