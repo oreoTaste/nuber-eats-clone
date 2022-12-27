@@ -128,3 +128,12 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# pictures
+*.jpg
+*.jpeg
+*.png
+*.pdf
+
+# OCR train data
+*.traineddata
