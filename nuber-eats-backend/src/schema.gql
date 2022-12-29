@@ -2,15 +2,80 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Restaurant {
-  id: Float!
-  name: String
+type HealthMarkOutput {
+  id: Float
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+
+  """건강지표"""
+  nmMark: String
+
+  """건강지표(다른표기법)"""
+  nmMarkOption: String
+
+  """단위"""
+  unit: String
+
+  """정상기준(이상)"""
+  strNormal: Float
+
+  """정상기준(이하)"""
+  endNormal: Float
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Query {
-  myRestaurant(name: String!): [Restaurant!]!
+  getOne(id: Float!): HealthMarkOutput
+  allProperties: [HealthMarkOutput!]!
 }
 
 type Mutation {
-  createRestaurant(name: String): Boolean!
+  insertOne(
+    """등록일시"""
+    dtInsert: DateTime
+
+    """등록자"""
+    idInsert: Float!
+
+    """수정일시"""
+    dtUpdate: DateTime
+
+    """수정자"""
+    idUpdate: Float
+
+    """상세설명"""
+    desc: String
+
+    """건강지표"""
+    nmMark: String!
+
+    """건강지표(다른표기법)"""
+    nmMarkOption: String
+
+    """단위"""
+    unit: String = "EA"
+
+    """정상기준(이상)"""
+    strNormal: Float
+
+    """정상기준(이하)"""
+    endNormal: Float
+  ): String!
 }
