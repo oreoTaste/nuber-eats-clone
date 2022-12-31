@@ -9,6 +9,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { OCR } from './util/OCR';
 import { HealthModule } from './health/health.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -29,9 +30,11 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      // autoSchemaFile: true,
       playground: true}),
 
-    HealthModule
+    HealthModule,
+    UsersModule
   ],
   controllers: [AppController],
   providers: [AppService, OCR],

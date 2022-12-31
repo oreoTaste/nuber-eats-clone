@@ -1,9 +1,11 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { IsNumber, IsString, IsOptional } from "class-validator";
+import { ArgsType, Field, ObjectType } from "@nestjs/graphql";
+import { IsNumber, IsString, IsOptional, IsEnum } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
+import { User } from "src/users/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
 
-@ObjectType()
+@ObjectType({isAbstract: true})
+@ArgsType()
 @Entity()
 export class HealthMarkGrp extends CoreEntity {
     @Column({comment: "건강지표 그룹명"})
@@ -11,8 +13,8 @@ export class HealthMarkGrp extends CoreEntity {
     @IsString()
     nmGrpMark : string; // 건강지표 그룹명
 
-    @Column({comment: "건강지표 타입"})
-    @Field({ description: "건강지표 타입"})
+    @Column({comment: "건강지표 그룹타입"})
+    @Field({ description: "건강지표 그룹타입"})
     @IsString()
     tpGrp : string; // 건강지표 그룹의 타입
 
@@ -20,7 +22,11 @@ export class HealthMarkGrp extends CoreEntity {
     healthMarks: HealthMark[];
 }
 
-@ObjectType()
+export enum Severity {
+    NONE, MILD, MODERATE, SEVERE
+}
+@ObjectType({isAbstract: true})
+@ArgsType()
 @Entity()
 export class HealthMark extends CoreEntity {
 
@@ -56,11 +62,23 @@ export class HealthMark extends CoreEntity {
     @IsOptional()
     endNormal?: number; //정상기준(이하)
 
+    @Column({enum: Severity, default: Severity.MILD, comment: "중요도"})
+    @Field({defaultValue: Severity.MILD, description: "중요도"})
+    @IsEnum(Severity)
+    severity: Severity; //중요도
+    
 }
+
 
 @ObjectType()
 @Entity()
 export class HealthRecord extends CoreEntity {
+
+    @ManyToOne(type=>User
+            , (user)=>user.healthRecord
+            , {lazy: false, nullable: true, onDelete: "NO ACTION"})
+    @Field(type=>User, {nullable: true})
+    user: User;
 
     @Column({comment: "기록타입"})
     @Field({description: "기록타입"})

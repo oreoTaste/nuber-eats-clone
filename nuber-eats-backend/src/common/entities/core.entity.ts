@@ -1,8 +1,9 @@
-import { Field, ObjectType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @ObjectType()
+@InputType({isAbstract: true})
 export class CoreEntity {
 
     @PrimaryGeneratedColumn()

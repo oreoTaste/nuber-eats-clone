@@ -2,6 +2,63 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type UserGrp {
+  id: Float!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+
+  """사용자 그룹명"""
+  nmUserGrp: String!
+
+  """사용자 그룹타입"""
+  tpUserGrp: String!
+  users: [User!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type User {
+  id: Float!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+  userGrp: UserGrp
+
+  """사용자명"""
+  name: String!
+
+  """생년월일"""
+  birthdate: String
+}
+
 type HealthMarkOutput {
   id: Float
 
@@ -34,20 +91,46 @@ type HealthMarkOutput {
 
   """정상기준(이하)"""
   endNormal: Float
+
+  """중요도"""
+  severity: Float
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
+type UserOutput {
+  id: Float
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+  userGrp: UserGrp
+
+  """사용자명"""
+  name: String
+
+  """생년월일"""
+  birthdate: String
+}
 
 type Query {
-  getOne(id: Float!): HealthMarkOutput
-  allProperties: [HealthMarkOutput!]!
+  findHealthMark(id: Float!): HealthMarkOutput
+  allHealthMarks: [HealthMarkOutput!]!
+  findGrpUsers(idUserGrp: Float!): [UserOutput!]
+  findUser(idUser: Float!): UserOutput
 }
 
 type Mutation {
-  insertOne(
+  addHealthMark(
     """등록일시"""
     dtInsert: DateTime
 
@@ -77,5 +160,106 @@ type Mutation {
 
     """정상기준(이하)"""
     endNormal: Float
-  ): String!
+
+    """중요도"""
+    severity: Float! = 1
+  ): Boolean!
+  insertUserGrp(
+    """등록일시"""
+    dtInsert: DateTime
+
+    """등록자"""
+    idInsert: Float!
+
+    """수정일시"""
+    dtUpdate: DateTime
+
+    """수정자"""
+    idUpdate: Float
+
+    """상세설명"""
+    desc: String
+
+    """사용자 그룹명"""
+    nmUserGrp: String!
+
+    """사용자 그룹타입"""
+    tpUserGrp: String! = "GENERAL"
+    users: [UserInput!]
+  ): Boolean!
+  insertUser(
+    """등록일시"""
+    dtInsert: DateTime
+
+    """등록자"""
+    idInsert: Float!
+
+    """수정일시"""
+    dtUpdate: DateTime
+
+    """수정자"""
+    idUpdate: Float
+
+    """상세설명"""
+    desc: String
+    userGrp: UserGrpInput
+
+    """사용자명"""
+    name: String!
+
+    """생년월일"""
+    birthdate: String
+  ): Boolean!
+}
+
+input UserInput {
+  id: Float!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+  userGrp: UserGrpInput
+
+  """사용자명"""
+  name: String!
+
+  """생년월일"""
+  birthdate: String
+}
+
+input UserGrpInput {
+  id: Float!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Float!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Float
+
+  """상세설명"""
+  desc: String
+
+  """사용자 그룹명"""
+  nmUserGrp: String!
+
+  """사용자 그룹타입"""
+  tpUserGrp: String! = "GENERAL"
+  users: [UserInput!]
 }

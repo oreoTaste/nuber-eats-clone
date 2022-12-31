@@ -5,22 +5,21 @@ import { HealthMark, HealthRecord } from "../entities/health.entity";
 export class HealthMarkInput extends OmitType(HealthMark, ['id'], InputType) {
 }
 
+@ArgsType()
+export class HealthMarkArgs extends OmitType(HealthMark, ['id'], ArgsType) {
+}
 @ObjectType()
 export class HealthMarkOutput extends PartialType(HealthMark, ObjectType) {
 }
 
-@ArgsType()
-export class HealthMarkArgs extends OmitType(HealthMark, ['id'], ArgsType) {
-}
 
 @InputType()
 export class HealthRecordInput extends OmitType(HealthRecord, ['id'], InputType) {
 }
-
+@ArgsType()
+export class HealthRecordArgs extends OmitType(HealthRecord, ['id'], ArgsType) {
+}
 @ObjectType()
 export class HealthRecordOutput extends PartialType(HealthRecord, ObjectType) {
 }
 
-@ArgsType()
-export class HealthRecordArgs extends OmitType(HealthRecord, ['id'], ArgsType) {
-}
