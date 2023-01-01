@@ -1,6 +1,16 @@
-import { ArgsType, InputType, ObjectType, OmitType, PartialType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, ObjectType, OmitType, PartialType, PickType } from "@nestjs/graphql";
+import { IsOptional } from "class-validator";
+import { CommonOutput } from "src/common/dtos/core.dto";
 import { User, UserGrp } from "../entities/user.entity";
 
+
+@InputType()
+export class GetUsrInfosInput extends PickType(UserGrp, ['id'], InputType){}
+@ObjectType()
+export class GetUsrInfosOutput extends CommonOutput{
+    @Field(type => [User], {nullable:true})
+    users?: User[];
+}
 @InputType()
 export class UserGrpInput extends OmitType(UserGrp, ['id'], InputType){}
 

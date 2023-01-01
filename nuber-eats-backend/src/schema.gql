@@ -96,6 +96,12 @@ type HealthMarkOutput {
   severity: Float
 }
 
+type GetUsrInfosOutput {
+  cnt: Float
+  reason: String
+  users: [User!]
+}
+
 type UserOutput {
   id: Float
 
@@ -125,8 +131,12 @@ type UserOutput {
 type Query {
   findHealthMark(id: Float!): HealthMarkOutput
   allHealthMarks: [HealthMarkOutput!]!
-  findGrpUsers(idUserGrp: Float!): [UserOutput!]
+  findGrpUsers(input: GetUsrInfosInput!): GetUsrInfosOutput!
   findUser(idUser: Float!): UserOutput
+}
+
+input GetUsrInfosInput {
+  id: Float!
 }
 
 type Mutation {

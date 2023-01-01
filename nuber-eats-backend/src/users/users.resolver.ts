@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UserArgs, UserGrpArgs, UserOutput } from './dtos/user.dto';
+import { GetUsrInfosInput, GetUsrInfosOutput, UserArgs, UserGrpArgs, UserOutput } from './dtos/user.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -17,9 +17,10 @@ export class UsersResolver {
         return this.service.insertUsr(user);
     }
 
-    @Query(type => [UserOutput], {nullable: true})
-    findGrpUsers(@Args('idUserGrp') idUserGrp: number): Promise<UserOutput[]> {
-        return this.service.getUsrInfos(idUserGrp);
+    @Query(type => GetUsrInfosOutput)
+    async findGrpUsers(@Args('input') idUserGrp: GetUsrInfosInput): Promise<GetUsrInfosOutput> {
+        let rslt= await this.service.getUsrInfos(idUserGrp);
+        return rslt;
     }
 
     @Query(type => UserOutput, {nullable: true})
