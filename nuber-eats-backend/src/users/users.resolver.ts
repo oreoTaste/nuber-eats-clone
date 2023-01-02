@@ -1,5 +1,8 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { GetUsrInfosInput, GetUsrInfosOutput, UserArgs, UserGrpArgs, UserOutput } from './dtos/user.dto';
+import { GetUserInput, GetUserOutput } from './dtos/get-user.dto';
+import { GetUsersInput, GetUsersOutput } from './dtos/get-uses.dto';
+import { InsertUserGrpInput, InsertUserGrpOutput } from './dtos/insert-user-grp.dto';
+import { InsertUserInput, InsertUserOutput } from './dtos/insert-user.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -7,24 +10,23 @@ import { UsersService } from './users.service';
 export class UsersResolver {
     constructor(private readonly service: UsersService) {}
 
-    @Mutation(type => Boolean)
-    insertUserGrp(@Args() userGrp: UserGrpArgs): boolean {
-        return this.service.insertUserGrp(userGrp);
+    @Mutation(type => InsertUserGrpOutput)
+    insertUserGrp(@Args('input') insertUserGrpInput: InsertUserGrpInput): Promise<InsertUserGrpOutput> {
+        return this.service.insertUserGrp(insertUserGrpInput);
     }
 
-    @Mutation(type => Boolean)
-    insertUser(@Args() user: UserArgs): boolean {
-        return this.service.insertUsr(user);
+    @Mutation(type => InsertUserOutput)
+    insertUser(@Args('input') insertUserInput: InsertUserInput): Promise<InsertUserOutput>{
+        return this.service.insertUser(insertUserInput);
     }
 
-    @Query(type => GetUsrInfosOutput)
-    async findGrpUsers(@Args('input') idUserGrp: GetUsrInfosInput): Promise<GetUsrInfosOutput> {
-        let rslt= await this.service.getUsrInfos(idUserGrp);
-        return rslt;
+    @Query(type => GetUsersOutput)
+    findGrpUsers(@Args('input') idUserGrp: GetUsersInput): Promise<GetUsersOutput> {
+        return this.service.getUsers(idUserGrp);
     }
 
-    @Query(type => UserOutput, {nullable: true})
-    findUser(@Args('idUser') idUser: number): Promise<UserOutput> {
-        return this.service.getUsrInfo(idUser);
+    @Query(type => GetUserOutput)
+    findUser(@Args('input') getUserInput: GetUserInput): Promise<GetUserOutput> {
+        return this.service.getUser(getUserInput);
     }
 }

@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsOptional, IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { HealthRecord } from "src/health/entities/health.entity";
