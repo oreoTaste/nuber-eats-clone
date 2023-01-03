@@ -3,19 +3,19 @@
 # ------------------------------------------------------
 
 type UserGrp {
-  id: Float!
+  id: Int!
 
   """등록일시"""
   dtInsert: DateTime
 
   """등록자"""
-  idInsert: Float!
+  idInsert: Int!
 
   """수정일시"""
   dtUpdate: DateTime
 
   """수정자"""
-  idUpdate: Float
+  idUpdate: Int
 
   """상세설명"""
   desc: String
@@ -34,19 +34,19 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type User {
-  id: Float!
+  id: Int!
 
   """등록일시"""
   dtInsert: DateTime
 
   """등록자"""
-  idInsert: Float!
+  idInsert: Int!
 
   """수정일시"""
   dtUpdate: DateTime
 
   """수정자"""
-  idUpdate: Float
+  idUpdate: Int
 
   """상세설명"""
   desc: String
@@ -59,41 +59,16 @@ type User {
   birthdate: String
 }
 
-type HealthMarkOutput {
-  id: Float
+type AddHealthMarkOutput {
+  cnt: Float
+  reason: String
+  healthMarkId: Int
+}
 
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Float
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Float
-
-  """상세설명"""
-  desc: String
-
-  """건강지표"""
-  nmMark: String
-
-  """건강지표(다른표기법)"""
-  nmMarkOption: String
-
-  """단위"""
-  unit: String
-
-  """정상기준(이상)"""
-  strNormal: Float
-
-  """정상기준(이하)"""
-  endNormal: Float
-
-  """중요도"""
-  severity: Float
+type AddHealthMarkGrpOutput {
+  cnt: Float
+  reason: String
+  healthMarkGrpId: Int
 }
 
 type GetUserOutput {
@@ -121,57 +96,82 @@ type InsertUserOutput {
 }
 
 type Query {
-  findHealthMark(id: Float!): HealthMarkOutput
-  allHealthMarks: [HealthMarkOutput!]!
   findGrpUsers(input: GetUsersInput!): GetUsersOutput!
   findUser(input: GetUserInput!): GetUserOutput!
 }
 
 input GetUsersInput {
-  id: Float!
+  id: Int!
 }
 
 input GetUserInput {
-  id: Float!
+  id: Int!
 }
 
 type Mutation {
-  addHealthMark(
-    """등록일시"""
-    dtInsert: DateTime
-
-    """등록자"""
-    idInsert: Float!
-
-    """수정일시"""
-    dtUpdate: DateTime
-
-    """수정자"""
-    idUpdate: Float
-
-    """상세설명"""
-    desc: String
-
-    """건강지표"""
-    nmMark: String!
-
-    """건강지표(다른표기법)"""
-    nmMarkOption: String
-
-    """단위"""
-    unit: String = "EA"
-
-    """정상기준(이상)"""
-    strNormal: Float
-
-    """정상기준(이하)"""
-    endNormal: Float
-
-    """중요도"""
-    severity: Float! = 1
-  ): Boolean!
+  addHealthMarkGrp(input: AddHealthMarkGrpInput!): AddHealthMarkGrpOutput!
+  addHealthMark(input: AddHealthMarkInput!): AddHealthMarkOutput!
   insertUserGrp(input: InsertUserGrpInput!): InsertUserGrpOutput!
   insertUser(input: InsertUserInput!): InsertUserOutput!
+}
+
+input AddHealthMarkGrpInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표 그룹명"""
+  nmGrpMark: String!
+
+  """건강지표 그룹타입"""
+  tpGrp: String!
+}
+
+input AddHealthMarkInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표"""
+  nmMark: String!
+
+  """건강지표(다른표기법)"""
+  nmMarkOption: String
+
+  """단위"""
+  unit: String = "EA"
+
+  """정상기준(이상)"""
+  strNormal: Float
+
+  """정상기준(이하)"""
+  endNormal: Float
+
+  """중요도"""
+  severity: Float! = 1
+  healthMarkGrpId: Int!
 }
 
 input InsertUserGrpInput {
@@ -179,13 +179,13 @@ input InsertUserGrpInput {
   dtInsert: DateTime
 
   """등록자"""
-  idInsert: Float!
+  idInsert: Int!
 
   """수정일시"""
   dtUpdate: DateTime
 
   """수정자"""
-  idUpdate: Float
+  idUpdate: Int
 
   """상세설명"""
   desc: String
@@ -202,13 +202,13 @@ input InsertUserInput {
   dtInsert: DateTime
 
   """등록자"""
-  idInsert: Float!
+  idInsert: Int!
 
   """수정일시"""
   dtUpdate: DateTime
 
   """수정자"""
-  idUpdate: Float
+  idUpdate: Int
 
   """상세설명"""
   desc: String

@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -7,7 +7,7 @@ import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } fr
 export class CoreEntity {
 
     @PrimaryGeneratedColumn()
-    @Field(type=> Number, {nullable: false})
+    @Field(type=> Int, {nullable: false})
     @IsNumber()
     id: number;
 
@@ -18,7 +18,7 @@ export class CoreEntity {
 
     @Column({comment: "등록자"})
     @IsNumber()
-    @Field({description: "등록자"})
+    @Field(type => Int, {description: "등록자"})
     idInsert: number; //등록자
 
     @UpdateDateColumn({type: "timestamptz", nullable: true, comment: "수정일시"})
@@ -28,7 +28,7 @@ export class CoreEntity {
 
     @Column({nullable: true, comment: "수정자"})
     @IsNumber()
-    @Field({nullable: true, description: "수정자"})
+    @Field(type => Int, {nullable: true, description: "수정자"})
     @IsOptional()
     idUpdate: number; //수정자
 

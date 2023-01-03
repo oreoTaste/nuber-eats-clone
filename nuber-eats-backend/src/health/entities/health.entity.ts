@@ -1,11 +1,13 @@
-import { ArgsType, Field, ObjectType } from "@nestjs/graphql";
+import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsString, IsOptional, IsEnum } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
 
-@ObjectType({isAbstract: true})
-@ArgsType()
+// @ObjectType({isAbstract: true})
+// @ArgsType()
+@ObjectType()
+@InputType("HealthMarkGrpInput", {isAbstract: true})
 @Entity()
 export class HealthMarkGrp extends CoreEntity {
     @Column({comment: "건강지표 그룹명"})
@@ -25,8 +27,10 @@ export class HealthMarkGrp extends CoreEntity {
 export enum Severity {
     NONE, MILD, MODERATE, SEVERE
 }
-@ObjectType({isAbstract: true})
-@ArgsType()
+// @ObjectType({isAbstract: true})
+// @ArgsType()
+@ObjectType()
+@InputType("HealthMarkInput", {isAbstract: true})
 @Entity()
 export class HealthMark extends CoreEntity {
 
