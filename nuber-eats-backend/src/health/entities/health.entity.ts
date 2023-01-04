@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsString, IsOptional, IsEnum } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { User } from "src/users/entities/user.entity";
@@ -70,13 +70,19 @@ export class HealthMark extends CoreEntity {
     @Field({defaultValue: Severity.MILD, description: "중요도"})
     @IsEnum(Severity)
     severity: Severity; //중요도
-    
+
+    @OneToMany(type=>HealthRecord, (record) => record.healthMark, {lazy: true})
+    healthRecord: HealthRecord[];
 }
 
 
 @ObjectType()
+@InputType("HealthRecordInput", {isAbstract: true})
 @Entity()
 export class HealthRecord extends CoreEntity {
+
+    @ManyToOne(type=>HealthMark, (healthMark)=>healthMark.healthRecord, {lazy : false})
+    healthMark: HealthMark; // 건강지표 그룹
 
     @ManyToOne(type=>User
             , (user)=>user.healthRecord

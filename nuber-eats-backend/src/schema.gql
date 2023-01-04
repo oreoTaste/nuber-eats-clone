@@ -59,6 +59,97 @@ type User {
   birthdate: String
 }
 
+type HealthMarkGrp {
+  id: Int!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표 그룹명"""
+  nmGrpMark: String!
+
+  """건강지표 그룹타입"""
+  tpGrp: String!
+}
+
+type HealthMark {
+  id: Int!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표"""
+  nmMark: String!
+
+  """건강지표(다른표기법)"""
+  nmMarkOption: String
+
+  """단위"""
+  unit: String
+
+  """정상기준(이상)"""
+  strNormal: Float
+
+  """정상기준(이하)"""
+  endNormal: Float
+
+  """중요도"""
+  severity: Float!
+}
+
+type HealthRecord {
+  id: Int!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  user: User
+
+  """기록타입"""
+  tpRecord: Float!
+
+  """기록값(숫자)"""
+  record1: Float
+
+  """기록값(문자)"""
+  record2: String
+}
+
 type AddHealthMarkOutput {
   cnt: Float
   reason: String
@@ -69,6 +160,24 @@ type AddHealthMarkGrpOutput {
   cnt: Float
   reason: String
   healthMarkGrpId: Int
+}
+
+type ShowHealthRecordOutput {
+  cnt: Float
+  reason: String
+  healthRecord: [HealthRecord!]
+}
+
+type ShowHealthMarkGrpOutput {
+  cnt: Float
+  reason: String
+  healthMarkGrp: [HealthMarkGrp!]
+}
+
+type ShowHealthMarkOutput {
+  cnt: Float
+  reason: String
+  healthMark: [HealthMark!]
 }
 
 type GetUserOutput {
@@ -96,8 +205,80 @@ type InsertUserOutput {
 }
 
 type Query {
+  showHealthMarkGrp(input: ShowHealthMarkGrpInput!): ShowHealthMarkGrpOutput!
+  showHealthMark(input: ShowHealthMarkInput!): ShowHealthMarkOutput!
+  showHealthRecord(input: ShowHealthRecordInput!): ShowHealthRecordOutput!
   findGrpUsers(input: GetUsersInput!): GetUsersOutput!
   findUser(input: GetUserInput!): GetUserOutput!
+}
+
+input ShowHealthMarkGrpInput {
+  id: Int
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표 그룹명"""
+  nmGrpMark: String
+
+  """건강지표 그룹타입"""
+  tpGrp: String
+}
+
+input ShowHealthMarkInput {
+  id: Int
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """건강지표"""
+  nmMark: String
+
+  """건강지표(다른표기법)"""
+  nmMarkOption: String
+
+  """단위"""
+  unit: String = "EA"
+
+  """정상기준(이상)"""
+  strNormal: Float
+
+  """정상기준(이하)"""
+  endNormal: Float
+
+  """중요도"""
+  severity: Float = 1
+}
+
+input ShowHealthRecordInput {
+  idUser: Int!
+  idHealthRecord: Int!
+  dtRecordStart: DateTime
+  dtRecordEnd: DateTime
 }
 
 input GetUsersInput {
