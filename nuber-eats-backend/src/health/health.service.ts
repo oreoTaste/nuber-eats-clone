@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, ILike, Like, Repository } from 'typeorm';
 import { HealthMark, HealthMarkGrp, HealthRecord } from './entities/health.entity';
 import { AddHealthMarkInput, AddHealthMarkOutput } from './dtos/add-health-mark.dto';
 import { AddHealthMarkGrpInput, AddHealthMarkGrpOutput } from './dtos/add-health-mark-grp.dto.';
-import { ShowHealthRecordInput, ShowHealthRecordOutput } from './dtos/show-health-record.dto';
+import { FindHealthRecordInput, FindHealthRecordOutput } from './dtos/find-health-record.dto';
 import { User } from 'src/users/entities/user.entity';
-import { ShowHealthMarkGrpInput, ShowHealthMarkGrpOutput } from './dtos/show-health-mark-grp.dto';
-import { ShowHealthMarkInput, ShowHealthMarkOutput } from './dtos/show-health-mark.dto';
-import { Like } from "typeorm";
+import { FindHealthMarkGrpInput, FindHealthMarkGrpOutput } from './dtos/find-health-mark-grp.dto';
+import { FindHealthMarkInput, FindHealthMarkOutput } from './dtos/find-health-mark.dto';
 import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
 
 @Injectable()
@@ -38,13 +37,14 @@ export class HealthService {
     /**
      * @description 건강지표그룹 조회 (건강지표그룹 정보 필수)
      */
-    async showHealthMarkGrp({nmGrpMark, ...etc}: ShowHealthMarkGrpInput): Promise<ShowHealthMarkGrpOutput>{
+    async findHealthMarkGrp({nmGrpMark, ...etc}: FindHealthMarkGrpInput): Promise<FindHealthMarkGrpOutput>{
         try {
             let rslt;
             if(!nmGrpMark || nmGrpMark.length == 0) {
-                rslt = await this.healthMarkGrp.findBy([etc]);
+                rslt = await this.healthMarkGrp.findBy({...etc});
+            } else {
+                rslt = await this.healthMarkGrp.findBy({...etc, nmGrpMark: ILike(`%${nmGrpMark? nmGrpMark: ''}%`)});
             }
-            rslt = await this.healthMarkGrp.findBy([etc, {nmGrpMark: Like(`%${nmGrpMark}%`)}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok', healthMarkGrp: rslt};
             } else {
@@ -59,7 +59,7 @@ export class HealthService {
         if(!id) {
             return {ok: false, reason: 'no health mark group input', id: null};
         }
-        let rslt = await this.healthMark.findOne({where: {id}});
+        let rslt = await this.healthMarkGrp.findOne({where: {id}});
         if(!rslt) {
             return {ok: false, reason: 'no health mark group found', id: null};
         }
@@ -90,14 +90,18 @@ export class HealthService {
     /**
      * @description 건강지표 조회 (건강지표 정보 필수)
      */
-    async showHealthMark({...etc}: ShowHealthMarkInput): Promise<ShowHealthMarkOutput>{
+    async findHealthMark({nmMark, ...etc}: FindHealthMarkInput): Promise<FindHealthMarkOutput>{
         try {
             // let {ok, reason, id} = await this.checkHealthMarkGroup(showHealthMarkInput.grpMark.id);
             // if(!ok) {
             //     return {cnt: 0, reason, healthMark: null};
             // }
-
-            let healthMark = await this.healthMark.find({where: etc});
+            let healthMark;
+            if(!nmMark || nmMark.length == 0) {
+                healthMark = await this.healthMark.find({where: {...etc}});
+            } else {
+                healthMark = await this.healthMark.find({where: {...etc, nmMark: ILike(`%${nmMark? nmMark: ''}%`)}});
+            }
             if(healthMark) {
                 return {cnt: 1, reason: 'ok', healthMark};
             } else {
@@ -134,7 +138,7 @@ export class HealthService {
     /**
      * @description 사용자 건강기록 조회
      */
-    async showHealthRecord({idHealthRecord, idUser, dtRecordStart, dtRecordEnd}: ShowHealthRecordInput): Promise<ShowHealthRecordOutput> {
+    async findHealthRecord({idHealthRecord, idUser, dtRecordStart, dtRecordEnd}: FindHealthRecordInput): Promise<FindHealthRecordOutput> {
         try {
             if(!idHealthRecord || !idUser) {
                 return {cnt: 0, reason: 'no userid or health record input', healthRecord: null}

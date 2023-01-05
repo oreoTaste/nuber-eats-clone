@@ -3,10 +3,10 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { HealthMarkGrp } from "../entities/health.entity";
 
 @InputType()
-export class ShowHealthMarkGrpInput extends PartialType(HealthMarkGrp, InputType) {}
+export class FindHealthMarkGrpInput extends PartialType(HealthMarkGrp, InputType) {}
 
 @ObjectType()
-export class ShowHealthMarkGrpOutput extends CommonOutput {
+export class FindHealthMarkGrpOutput extends CommonOutput {
     @Field(type => [HealthMarkGrp], {nullable: true})
     healthMarkGrp: HealthMarkGrp[];
 }

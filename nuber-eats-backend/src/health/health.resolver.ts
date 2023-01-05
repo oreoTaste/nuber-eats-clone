@@ -3,9 +3,9 @@ import { HealthMark } from './entities/health.entity';
 import { HealthService } from './health.service';
 import { AddHealthMarkInput, AddHealthMarkOutput } from './dtos/add-health-mark.dto';
 import { AddHealthMarkGrpInput, AddHealthMarkGrpOutput } from './dtos/add-health-mark-grp.dto.';
-import { ShowHealthRecordInput, ShowHealthRecordOutput } from './dtos/show-health-record.dto';
-import { ShowHealthMarkGrpInput, ShowHealthMarkGrpOutput } from './dtos/show-health-mark-grp.dto';
-import { ShowHealthMarkInput, ShowHealthMarkOutput } from './dtos/show-health-mark.dto';
+import { FindHealthRecordInput, FindHealthRecordOutput } from './dtos/find-health-record.dto';
+import { FindHealthMarkGrpInput, FindHealthMarkGrpOutput } from './dtos/find-health-mark-grp.dto';
+import { FindHealthMarkInput, FindHealthMarkOutput } from './dtos/find-health-mark.dto';
 import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
 
 @Resolver(of => HealthMark)
@@ -23,9 +23,9 @@ export class HealthResolver {
     /**
      * @description 건강지표 그룹 조회
      */
-    @Query(type=> ShowHealthMarkGrpOutput)
-    showHealthMarkGrp(@Args('input') input: ShowHealthMarkGrpInput): Promise<ShowHealthMarkGrpOutput> {
-        return this.service.showHealthMarkGrp(input);
+    @Query(type=> FindHealthMarkGrpOutput)
+    findHealthMarkGrp(@Args('input') input: FindHealthMarkGrpInput): Promise<FindHealthMarkGrpOutput> {
+        return this.service.findHealthMarkGrp(input);
     }
 
     /**
@@ -39,9 +39,9 @@ export class HealthResolver {
     /**
      * @description 건강지표 조회
      */
-    @Query(type=> ShowHealthMarkOutput)
-    showHealthMark(@Args('input') input: ShowHealthMarkInput): Promise<ShowHealthMarkOutput> {
-        return this.service.showHealthMark(input);
+    @Query(type=> FindHealthMarkOutput)
+    findHealthMark(@Args('input') input: FindHealthMarkInput): Promise<FindHealthMarkOutput> {
+        return this.service.findHealthMark(input);
     }
 
     /**
@@ -55,8 +55,8 @@ export class HealthResolver {
     /**
      * @description 사용자 건강기록 조회
      */
-    @Query(type => ShowHealthRecordOutput)
-    showHealthRecord(@Args('input') input: ShowHealthRecordInput): Promise<ShowHealthRecordOutput> {
-        return this.service.showHealthRecord(input);
+    @Query(type => FindHealthRecordOutput)
+    findHealthRecord(@Args('input') input: FindHealthRecordInput): Promise<FindHealthRecordOutput> {
+        return this.service.findHealthRecord(input);
     }
 }

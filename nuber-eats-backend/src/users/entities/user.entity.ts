@@ -1,4 +1,4 @@
-import { ArgsType, Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Field, InputType, ObjectType } from "@nestjs/graphql";
 import { IsOptional, IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { HealthRecord } from "src/health/entities/health.entity";
@@ -14,8 +14,9 @@ export class UserGrp extends CoreEntity{
     nmUserGrp : string; // 사용자 그룹명
 
     @Column({comment: "사용자 그룹타입", default: 'GENERAL', length: 10})
-    @Field({ description: "사용자 그룹타입", defaultValue: 'GENERAL'})
+    @Field({description: "사용자 그룹타입", nullable: true})
     @IsString()
+    @IsOptional()
     tpUserGrp: string; // 사용자 그룹의 타입
 
     @OneToMany(type=>User
@@ -50,6 +51,6 @@ export class User extends CoreEntity{
     @Field({nullable: true, description: "생년월일"})
     @IsString()
     @IsOptional()
-    @Length(8)
+    @Length(8,8)
     birthdate: string;
 }

@@ -13,6 +13,7 @@ export class HealthMarkGrp extends CoreEntity {
     @Column({comment: "건강지표 그룹명"})
     @Field({description: "건강지표 그룹명"})
     @IsString()
+    @Length(1)
     nmGrpMark : string; // 건강지표 그룹명
 
     @Column({comment: "건강지표 그룹타입"})
@@ -40,6 +41,7 @@ export class HealthMark extends CoreEntity {
     @Column({comment: "건강지표"})
     @Field({description: "건강지표"})
     @IsString()
+    @Length(1,)
     nmMark: string; //건강지표
 
     @Column({nullable: true, comment: "건강지표(다른표기법)"})
@@ -48,8 +50,8 @@ export class HealthMark extends CoreEntity {
     @IsOptional()
     nmMarkOption: string; //기타명칭
 
-    @Column({nullable: true, comment: "단위"})
-    @Field({nullable: true, defaultValue: "EA", description: "단위"})
+    @Column({nullable: true, comment: "단위", default: "EA"})
+    @Field({nullable: true, description: "단위"})
     @IsString()
     @IsOptional()
     unit?: string; //단위
@@ -67,8 +69,9 @@ export class HealthMark extends CoreEntity {
     endNormal?: number; //정상기준(이하)
 
     @Column({enum: Severity, default: Severity.MILD, comment: "중요도"})
-    @Field({defaultValue: Severity.MILD, description: "중요도"})
+    @Field({description: "중요도", nullable: true})
     @IsEnum(Severity)
+    @IsOptional()
     severity: Severity; //중요도
 
     @OneToMany(type=>HealthRecord, (record) => record.healthMark, {lazy: true})
@@ -108,7 +111,7 @@ export class HealthRecord extends CoreEntity {
 
     @Column({ type: 'char', length:8, default: () => "TO_CHAR(NOW(), 'YYYYMMDD')", comment: "건강기록 측정일"})
     @Field({nullable: true, description: "건강기록 측정일"})
-    @Length(8)
+    @Length(8,8)
     @IsString()
     @IsOptional()
     ddRegister: string; //건강기록 측정일

@@ -3,10 +3,10 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { UserGrp } from "../entities/user.entity";
 
 @InputType()
-export class InsertUserGrpInput extends OmitType(UserGrp, ['id', 'users'], InputType){}
+export class AddUserGrpInput extends OmitType(UserGrp, ['id', 'users'], InputType){}
 
 @ObjectType()
-export class InsertUserGrpOutput extends CommonOutput{
+export class AddUserGrpOutput extends CommonOutput{
     @Field(type => Int, {nullable: true})
     idUserGrp?: number;
 }

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GetUserInput, GetUserOutput } from './dtos/get-user.dto';
-import { GetUsersInput, GetUsersOutput } from './dtos/get-uses.dto';
-import { InsertUserGrpInput, InsertUserGrpOutput } from './dtos/insert-user-grp.dto';
-import { InsertUserInput, InsertUserOutput } from './dtos/insert-user.dto';
+import { AddUserInput, AddUserOutput } from './dtos/add-user.dto';
 import { User, UserGrp } from './entities/user.entity';
+import { AddUserGrpInput, AddUserGrpOutput } from './dtos/add-user-grp.dto';
+import { FindGrpUsersInput, FindGrpUsersOutput } from './dtos/find-grp-uses.dto';
+import { FindUserInput, FindUserOutput } from './dtos/find-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -13,38 +13,38 @@ export class UsersService {
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>
                ){}
 
-    async insertUserGrp(insertUserGrpInput: InsertUserGrpInput): Promise<InsertUserGrpOutput>{
+    async addUserGrp(addUserGrpInput: AddUserGrpInput): Promise<AddUserGrpOutput>{
         try {
-            let userGrp = await this.userGrp.save(insertUserGrpInput);
+            let userGrp = await this.userGrp.save(addUserGrpInput);
             if(userGrp) {
                 return {cnt: 1, reason: 'ok', idUserGrp: userGrp.id};
             } else {
-                return {cnt: 0, reason: 'error while inserting userGrp', idUserGrp: null};
+                return {cnt: 0, reason: 'error while adding userGrp', idUserGrp: null};
             }
         } catch {
-            return {cnt: 0, reason: 'error while inserting userGrp', idUserGrp: null};
+            return {cnt: 0, reason: 'error while adding userGrp', idUserGrp: null};
         }
     }
 
-    async insertUser(insertUserInput: InsertUserInput): Promise<InsertUserOutput>{
+    async addUser(addUserInput: AddUserInput): Promise<AddUserOutput>{
         try {
-            if(!insertUserInput.idUserGrp) {
+            if(!addUserInput.idUserGrp) {
                 return {cnt: 0, reason: 'no user group found', idUser: null};
             }
-            let userGrp = await this.userGrp.findOne({where: {id: insertUserInput.idUserGrp}})
+            let userGrp = await this.userGrp.findOne({where: {id: addUserInput.idUserGrp}})
             let user = await this.user.save(
-                this.user.create({ ...insertUserInput, userGrp})
+                this.user.create({ ...addUserInput, userGrp})
             );
             if(user) {
                 return {cnt: 1, reason: 'ok', idUser: user.id};
             }
         } catch {
-            return {cnt: 0, reason: 'error while inserting user', idUser: null};
+            return {cnt: 0, reason: 'error while adding user', idUser: null};
         }
     }
 
-    async getUsers(getUsrsInput: GetUsersInput): Promise<GetUsersOutput>{
-        let userGrp = await this.userGrp.findOne({where: getUsrsInput});
+    async findGrpUsers({idUserGrp}: FindGrpUsersInput): Promise<FindGrpUsersOutput>{
+        let userGrp = await this.userGrp.findOne({where: {id: idUserGrp}});
         if(userGrp) {
             let [userList, cnt] = await this.user.findAndCount({where: {userGrp: {id: userGrp.id}}});
             if(cnt == 0) {
@@ -56,8 +56,8 @@ export class UsersService {
         }
     }
 
-    async getUser(getUsrInput: GetUserInput): Promise<GetUserOutput>{
-        let user = await this.user.findOne({where: getUsrInput});
+    async findUser({idUser}: FindUserInput): Promise<FindUserOutput>{
+        let user = await this.user.findOne({where: {id: idUser}});
         if(user) {
             return {cnt:1, reason: "ok", user};
         }

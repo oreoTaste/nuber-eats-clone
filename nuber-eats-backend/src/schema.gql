@@ -24,7 +24,7 @@ type UserGrp {
   nmUserGrp: String!
 
   """사용자 그룹타입"""
-  tpUserGrp: String!
+  tpUserGrp: String
   users: [User!]
 }
 
@@ -118,7 +118,7 @@ type HealthMark {
   endNormal: Float
 
   """중요도"""
-  severity: Float!
+  severity: Float
 }
 
 type HealthRecord {
@@ -165,19 +165,19 @@ type AddHealthMarkGrpOutput {
   idHealthMarkGrp: Int
 }
 
-type ShowHealthRecordOutput {
+type FindHealthRecordOutput {
   cnt: Float
   reason: String
   healthRecord: [HealthRecord!]
 }
 
-type ShowHealthMarkGrpOutput {
+type FindHealthMarkGrpOutput {
   cnt: Float
   reason: String
   healthMarkGrp: [HealthMarkGrp!]
 }
 
-type ShowHealthMarkOutput {
+type FindHealthMarkOutput {
   cnt: Float
   reason: String
   healthMark: [HealthMark!]
@@ -189,39 +189,39 @@ type AddHealthRecordOutput {
   idHealthRecord: Int
 }
 
-type GetUserOutput {
-  cnt: Float
-  reason: String
-  user: User
-}
-
-type GetUsersOutput {
-  cnt: Float
-  reason: String
-  users: [User!]
-}
-
-type InsertUserGrpOutput {
+type AddUserGrpOutput {
   cnt: Float
   reason: String
   idUserGrp: Int
 }
 
-type InsertUserOutput {
+type AddUserOutput {
   cnt: Float
   reason: String
   idUser: Int
 }
 
-type Query {
-  showHealthMarkGrp(input: ShowHealthMarkGrpInput!): ShowHealthMarkGrpOutput!
-  showHealthMark(input: ShowHealthMarkInput!): ShowHealthMarkOutput!
-  showHealthRecord(input: ShowHealthRecordInput!): ShowHealthRecordOutput!
-  findGrpUsers(input: GetUsersInput!): GetUsersOutput!
-  findUser(input: GetUserInput!): GetUserOutput!
+type FindUserOutput {
+  cnt: Float
+  reason: String
+  user: User
 }
 
-input ShowHealthMarkGrpInput {
+type FindGrpUsersOutput {
+  cnt: Float
+  reason: String
+  users: [User!]
+}
+
+type Query {
+  findHealthMarkGrp(input: FindHealthMarkGrpInput!): FindHealthMarkGrpOutput!
+  findHealthMark(input: FindHealthMarkInput!): FindHealthMarkOutput!
+  findHealthRecord(input: FindHealthRecordInput!): FindHealthRecordOutput!
+  findGrpUsers(input: FindGrpUsersInput!): FindGrpUsersOutput!
+  findUser(input: FindUserInput!): FindUserOutput!
+}
+
+input FindHealthMarkGrpInput {
   id: Int
 
   """등록일시"""
@@ -246,7 +246,7 @@ input ShowHealthMarkGrpInput {
   tpGrp: String
 }
 
-input ShowHealthMarkInput {
+input FindHealthMarkInput {
   id: Int
 
   """등록일시"""
@@ -271,7 +271,7 @@ input ShowHealthMarkInput {
   nmMarkOption: String
 
   """단위"""
-  unit: String = "EA"
+  unit: String
 
   """정상기준(이상)"""
   strNormal: Float
@@ -280,30 +280,30 @@ input ShowHealthMarkInput {
   endNormal: Float
 
   """중요도"""
-  severity: Float = 1
+  severity: Float
 }
 
-input ShowHealthRecordInput {
+input FindHealthRecordInput {
   idUser: Int!
   idHealthRecord: Int!
   dtRecordStart: DateTime
   dtRecordEnd: DateTime
 }
 
-input GetUsersInput {
-  id: Int!
+input FindGrpUsersInput {
+  idUserGrp: Int
 }
 
-input GetUserInput {
-  id: Int!
+input FindUserInput {
+  idUser: Int!
 }
 
 type Mutation {
   addHealthMarkGrp(input: AddHealthMarkGrpInput!): AddHealthMarkGrpOutput!
   addHealthMark(input: AddHealthMarkInput!): AddHealthMarkOutput!
   addHealthRecord(input: AddHealthRecordInput!): AddHealthRecordOutput!
-  insertUserGrp(input: InsertUserGrpInput!): InsertUserGrpOutput!
-  insertUser(input: InsertUserInput!): InsertUserOutput!
+  addUserGrp(input: AddUserGrpInput!): AddUserGrpOutput!
+  addUser(input: AddUserInput!): AddUserOutput!
 }
 
 input AddHealthMarkGrpInput {
@@ -352,7 +352,7 @@ input AddHealthMarkInput {
   nmMarkOption: String
 
   """단위"""
-  unit: String = "EA"
+  unit: String
 
   """정상기준(이상)"""
   strNormal: Float
@@ -361,7 +361,7 @@ input AddHealthMarkInput {
   endNormal: Float
 
   """중요도"""
-  severity: Float! = 1
+  severity: Float
   idHealthMarkGrp: Int!
 }
 
@@ -445,11 +445,11 @@ input UserGrpInput {
   nmUserGrp: String!
 
   """사용자 그룹타입"""
-  tpUserGrp: String! = "GENERAL"
+  tpUserGrp: String
   users: [UserInput!]
 }
 
-input InsertUserGrpInput {
+input AddUserGrpInput {
   """등록일시"""
   dtInsert: DateTime
 
@@ -469,10 +469,10 @@ input InsertUserGrpInput {
   nmUserGrp: String!
 
   """사용자 그룹타입"""
-  tpUserGrp: String! = "GENERAL"
+  tpUserGrp: String
 }
 
-input InsertUserInput {
+input AddUserInput {
   """등록일시"""
   dtInsert: DateTime
 

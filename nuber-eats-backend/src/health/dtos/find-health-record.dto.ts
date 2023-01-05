@@ -3,7 +3,7 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { HealthRecord } from "../entities/health.entity";
 
 @InputType()
-export class ShowHealthRecordInput {
+export class FindHealthRecordInput {
     @Field(type => Int)
     idUser: number;
 
@@ -19,7 +19,7 @@ export class ShowHealthRecordInput {
 }
 
 @ObjectType()
-export class ShowHealthRecordOutput extends CommonOutput{
+export class FindHealthRecordOutput extends CommonOutput{
     @Field(type => [HealthRecord], {nullable: true})
     healthRecord?: HealthRecord[];
 }
