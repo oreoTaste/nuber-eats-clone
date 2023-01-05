@@ -8,6 +8,8 @@ import { ShowHealthRecordInput, ShowHealthRecordOutput } from './dtos/show-healt
 import { User } from 'src/users/entities/user.entity';
 import { ShowHealthMarkGrpInput, ShowHealthMarkGrpOutput } from './dtos/show-health-mark-grp.dto';
 import { ShowHealthMarkInput, ShowHealthMarkOutput } from './dtos/show-health-mark.dto';
+import { Like } from "typeorm";
+import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
 
 @Injectable()
 export class HealthService {
@@ -20,25 +22,29 @@ export class HealthService {
     /**
      * @description 건강지표그룹 입력 (건강지표그룹 정보 필수)
      */
-    async addHealthMarkGrp(addHealthMarkGrpInput: AddHealthMarkGrpInput): Promise<AddHealthMarkGrpOutput>{
+    async addHealthMarkGrp({...etc}: AddHealthMarkGrpInput): Promise<AddHealthMarkGrpOutput>{
         try {
-            let rslt = await this.healthMarkGrp.save(addHealthMarkGrpInput);
+            let rslt = await this.healthMarkGrp.save({...etc});
             if(rslt) {
-                return {cnt: 1, reason: 'ok', healthMarkGrpId: rslt.id};
+                return {cnt: 1, reason: 'ok', idHealthMarkGrp: rslt.id};
             } else {
-                return {cnt: 0, reason: `couldn't add a health group mark`, healthMarkGrpId: rslt.id};
+                return {cnt: 0, reason: `couldn't add a health group mark`, idHealthMarkGrp: rslt.id};
             }
         } catch {
-            return {cnt: 0, reason: 'error while adding a health group mark', healthMarkGrpId: null};
+            return {cnt: 0, reason: 'error while adding a health group mark', idHealthMarkGrp: null};
         }
     }
 
     /**
      * @description 건강지표그룹 조회 (건강지표그룹 정보 필수)
      */
-    async showHealthMarkGrp(showHealthMarkGrpInput: ShowHealthMarkGrpInput): Promise<ShowHealthMarkGrpOutput>{
+    async showHealthMarkGrp({nmGrpMark, ...etc}: ShowHealthMarkGrpInput): Promise<ShowHealthMarkGrpOutput>{
         try {
-            let rslt = await this.healthMarkGrp.find({where: showHealthMarkGrpInput});
+            let rslt;
+            if(!nmGrpMark || nmGrpMark.length == 0) {
+                rslt = await this.healthMarkGrp.findBy([etc]);
+            }
+            rslt = await this.healthMarkGrp.findBy([etc, {nmGrpMark: Like(`%${nmGrpMark}%`)}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok', healthMarkGrp: rslt};
             } else {
@@ -63,35 +69,35 @@ export class HealthService {
     /**
      * @description 건강지표 입력 (건강지표 정보 및 건강지표그룹ID 필수)
      */
-    async addHealthMark(addHealthMarkInput: AddHealthMarkInput): Promise<AddHealthMarkOutput>{
+    async addHealthMark({idHealthMarkGrp, ...etc}: AddHealthMarkInput): Promise<AddHealthMarkOutput>{
         try {
-            let {ok, reason, id} = await this.checkHealthMarkGroup(addHealthMarkInput.healthMarkGrpId);
+            let {ok, reason, id} = await this.checkHealthMarkGroup(idHealthMarkGrp);
             if(!ok) {
-                return {cnt: 0, reason, healthMarkId: null};
+                return {cnt: 0, reason, idHealthMark: null};
             }
 
-            let rslt = await this.healthMark.save({...addHealthMarkInput, healthMarkGrpId: id});
+            let rslt = await this.healthMark.save({...etc, healthMarkGrpId: id});
             if(rslt) {
-                return {cnt: 1, reason: 'ok', healthMarkId: rslt.id};
+                return {cnt: 1, reason: 'ok', idHealthMark: rslt.id};
             } else {
-                return {cnt: 0, reason: `couldn't add a health mark`, healthMarkId: rslt.id};
+                return {cnt: 0, reason: `couldn't add a health mark`, idHealthMark: rslt.id};
             }
         } catch {
-            return {cnt: 0, reason: 'error while adding a health mark', healthMarkId: null};
+            return {cnt: 0, reason: 'error while adding a health mark', idHealthMark: null};
         }
     }
 
     /**
      * @description 건강지표 조회 (건강지표 정보 필수)
      */
-    async showHealthMark(showHealthMarkInput: ShowHealthMarkInput): Promise<ShowHealthMarkOutput>{
+    async showHealthMark({...etc}: ShowHealthMarkInput): Promise<ShowHealthMarkOutput>{
         try {
             // let {ok, reason, id} = await this.checkHealthMarkGroup(showHealthMarkInput.grpMark.id);
             // if(!ok) {
             //     return {cnt: 0, reason, healthMark: null};
             // }
 
-            let healthMark = await this.healthMark.find({where: showHealthMarkInput});
+            let healthMark = await this.healthMark.find({where: etc});
             if(healthMark) {
                 return {cnt: 1, reason: 'ok', healthMark};
             } else {
@@ -102,6 +108,29 @@ export class HealthService {
         }
     }
 
+    
+    /**
+     * @description 사용자 건강기록 입력
+     */
+    async addHealthRecord({idUser, tpRecord, idHealthMark, ...etc}: AddHealthRecordInput): Promise<AddHealthRecordOutput> {
+        try {
+            if(!tpRecord || !idUser || !idHealthMark) {
+                return {cnt: 0, reason: 'no userid or record type or health mark input', idHealthRecord: null}
+            }
+            let user = await this.user.findOne({where: {id: idUser}})
+            if(!user) {
+                return {cnt: 0, reason: 'no user found', idHealthRecord: null}
+            }
+
+            let record = await this.healthRecord.save(this.healthRecord.create({...etc, user}))
+            if(!record) {
+                return {cnt: 0, reason: 'error while inserting a health record', idHealthRecord: null};
+            }
+            return {cnt: 1, reason: 'ok', idHealthRecord: record.id};
+        } catch {
+            return {cnt: 0, reason: 'error while inserting a health record', idHealthRecord: null};
+        }
+    }    
     /**
      * @description 사용자 건강기록 조회
      */

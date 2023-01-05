@@ -5,11 +5,11 @@ import { HealthMark } from "../entities/health.entity";
 @InputType()
 export class AddHealthMarkInput extends OmitType(HealthMark, ['id'], InputType) {
     @Field(type => Int)
-    healthMarkGrpId: number;
+    idHealthMarkGrp: number;
 }
 
 @ObjectType()
 export class AddHealthMarkOutput extends CommonOutput {
     @Field(type => Int, {nullable: true})
-    healthMarkId?: number
+    idHealthMark?: number
 }

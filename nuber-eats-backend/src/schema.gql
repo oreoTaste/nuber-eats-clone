@@ -148,18 +148,21 @@ type HealthRecord {
 
   """기록값(문자)"""
   record2: String
+
+  """건강기록 측정일"""
+  ddRegister: String
 }
 
 type AddHealthMarkOutput {
   cnt: Float
   reason: String
-  healthMarkId: Int
+  idHealthMark: Int
 }
 
 type AddHealthMarkGrpOutput {
   cnt: Float
   reason: String
-  healthMarkGrpId: Int
+  idHealthMarkGrp: Int
 }
 
 type ShowHealthRecordOutput {
@@ -178,6 +181,12 @@ type ShowHealthMarkOutput {
   cnt: Float
   reason: String
   healthMark: [HealthMark!]
+}
+
+type AddHealthRecordOutput {
+  cnt: Float
+  reason: String
+  idHealthRecord: Int
 }
 
 type GetUserOutput {
@@ -292,6 +301,7 @@ input GetUserInput {
 type Mutation {
   addHealthMarkGrp(input: AddHealthMarkGrpInput!): AddHealthMarkGrpOutput!
   addHealthMark(input: AddHealthMarkInput!): AddHealthMarkOutput!
+  addHealthRecord(input: AddHealthRecordInput!): AddHealthRecordOutput!
   insertUserGrp(input: InsertUserGrpInput!): InsertUserGrpOutput!
   insertUser(input: InsertUserInput!): InsertUserOutput!
 }
@@ -352,7 +362,91 @@ input AddHealthMarkInput {
 
   """중요도"""
   severity: Float! = 1
-  healthMarkGrpId: Int!
+  idHealthMarkGrp: Int!
+}
+
+input AddHealthRecordInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  user: UserInput
+
+  """기록타입"""
+  tpRecord: Float!
+
+  """기록값(숫자)"""
+  record1: Float
+
+  """기록값(문자)"""
+  record2: String
+
+  """건강기록 측정일"""
+  ddRegister: String
+  idUser: Int!
+  idHealthMark: Int!
+}
+
+input UserInput {
+  id: Int!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  userGrp: UserGrpInput
+
+  """사용자명"""
+  name: String!
+
+  """생년월일"""
+  birthdate: String
+}
+
+input UserGrpInput {
+  id: Int!
+
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """사용자 그룹명"""
+  nmUserGrp: String!
+
+  """사용자 그룹타입"""
+  tpUserGrp: String! = "GENERAL"
+  users: [UserInput!]
 }
 
 input InsertUserGrpInput {

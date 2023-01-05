@@ -8,5 +8,5 @@ export class AddHealthMarkGrpInput extends OmitType(HealthMarkGrp, ['id'], Input
 @ObjectType()
 export class AddHealthMarkGrpOutput extends CommonOutput {
     @Field(type => Int, {nullable: true})
-    healthMarkGrpId: number
+    idHealthMarkGrp: number
 }

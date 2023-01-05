@@ -1,5 +1,5 @@
 import { Field, InputType, ObjectType } from "@nestjs/graphql";
-import { IsNumber, IsString, IsOptional, IsEnum } from "class-validator";
+import { IsNumber, IsString, IsOptional, IsEnum, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
@@ -105,4 +105,11 @@ export class HealthRecord extends CoreEntity {
     @IsString()
     @IsOptional()
     record2: string;
+
+    @Column({ type: 'char', length:8, default: () => "TO_CHAR(NOW(), 'YYYYMMDD')", comment: "건강기록 측정일"})
+    @Field({nullable: true, description: "건강기록 측정일"})
+    @Length(8)
+    @IsString()
+    @IsOptional()
+    ddRegister: string; //건강기록 측정일
 }

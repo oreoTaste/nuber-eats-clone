@@ -6,6 +6,7 @@ import { AddHealthMarkGrpInput, AddHealthMarkGrpOutput } from './dtos/add-health
 import { ShowHealthRecordInput, ShowHealthRecordOutput } from './dtos/show-health-record.dto';
 import { ShowHealthMarkGrpInput, ShowHealthMarkGrpOutput } from './dtos/show-health-mark-grp.dto';
 import { ShowHealthMarkInput, ShowHealthMarkOutput } from './dtos/show-health-mark.dto';
+import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
 
 @Resolver(of => HealthMark)
 export class HealthResolver {
@@ -41,6 +42,14 @@ export class HealthResolver {
     @Query(type=> ShowHealthMarkOutput)
     showHealthMark(@Args('input') input: ShowHealthMarkInput): Promise<ShowHealthMarkOutput> {
         return this.service.showHealthMark(input);
+    }
+
+    /**
+     * @description 사용자 건강기록 추가
+     */
+    @Mutation(type => AddHealthRecordOutput)
+    addHealthRecord(@Args('input') input: AddHealthRecordInput): Promise<AddHealthRecordOutput> {
+        return this.service.addHealthRecord(input);
     }
 
     /**
