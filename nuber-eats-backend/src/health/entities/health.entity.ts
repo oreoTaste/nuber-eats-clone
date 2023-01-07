@@ -1,15 +1,21 @@
-import { Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsString, IsOptional, IsEnum, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
+import { CoreInterface } from "src/common/entities/core.interface";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 // @ObjectType({isAbstract: true})
 // @ArgsType()
 @ObjectType()
 @InputType("HealthMarkGrpInput", {isAbstract: true})
 @Entity()
-export class HealthMarkGrp extends CoreEntity {
+export class HealthMarkGrp extends CoreEntity implements CoreInterface{
+    @PrimaryGeneratedColumn({name: "ID_HEALTH_MARK_GRP", primaryKeyConstraintName: "PK_HEALTH_MARK_GRP"})
+    @Field(type=> Int, {nullable: false})
+    @IsNumber()
+    id: number;
+
     @Column({comment: "건강지표 그룹명"})
     @Field({description: "건강지표 그룹명"})
     @IsString()
@@ -21,7 +27,9 @@ export class HealthMarkGrp extends CoreEntity {
     @IsString()
     tpGrp : string; // 건강지표 그룹의 타입
 
-    @OneToMany(type=>HealthMark, (mark) => mark.grpMark, {lazy: true})
+    @OneToMany(type=>HealthMark
+            , (mark) => mark.grpMark
+            , {lazy: true, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMarks: HealthMark[];
 }
 
@@ -33,12 +41,21 @@ export enum Severity {
 @ObjectType()
 @InputType("HealthMarkInput", {isAbstract: true})
 @Entity()
-export class HealthMark extends CoreEntity {
+export class HealthMark extends CoreEntity implements CoreInterface{
+    @PrimaryGeneratedColumn({name: "ID_HEALTH_MARK", primaryKeyConstraintName: "PK_HEALTH_MARK"})
+    @Field(type=> Int, {nullable: false})
+    @IsNumber()
+    id: number;
 
-    @ManyToOne(type=>HealthMarkGrp, (grp)=>grp.healthMarks, {lazy : false})
+    @ManyToOne(type=>HealthMarkGrp
+            , (grp)=>grp.healthMarks
+            , {lazy : false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+    @JoinColumn({ name: "ID_HEALTH_MARK_GRP" })
+    @Field({nullable: true})
+    @IsOptional()
     grpMark: HealthMarkGrp; // 건강지표 그룹
 
-    @Column({comment: "건강지표"})
+    @Column({name: "NM_MARK", comment: "건강지표"})
     @Field({description: "건강지표"})
     @IsString()
     @Length(1,)
@@ -82,14 +99,20 @@ export class HealthMark extends CoreEntity {
 @ObjectType()
 @InputType("HealthRecordInput", {isAbstract: true})
 @Entity()
-export class HealthRecord extends CoreEntity {
+export class HealthRecord extends CoreEntity implements CoreInterface{
+    @PrimaryGeneratedColumn({name: "ID_HEALTH_RECORD", primaryKeyConstraintName: "PK_HEALTH_RECORD"})
+    @Field(type=> Int, {nullable: false})
+    @IsNumber()
+    id: number;
 
-    @ManyToOne(type=>HealthMark, (healthMark)=>healthMark.healthRecord, {lazy : false})
+    @ManyToOne(type=>HealthMark
+            , (healthMark)=>healthMark.healthRecord
+            , {lazy : false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMark: HealthMark; // 건강지표 그룹
 
     @ManyToOne(type=>User
             , (user)=>user.healthRecord
-            , {lazy: false, nullable: true, onDelete: "NO ACTION"})
+            , {lazy: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     @Field(type=>User, {nullable: true})
     user: User;
 

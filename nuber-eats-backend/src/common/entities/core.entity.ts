@@ -1,16 +1,12 @@
 import { ArgsType, Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsOptional, IsString } from "class-validator";
-import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { randomInt, randomUUID } from "crypto";
+import { Column, CreateDateColumn, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
+import { CoreInterface } from "./core.interface";
 
 @ObjectType()
 @InputType({isAbstract: true})
-export class CoreEntity {
-
-    @PrimaryGeneratedColumn()
-    @Field(type=> Int, {nullable: false})
-    @IsNumber()
-    id: number;
-
+export class CoreEntity{
     @CreateDateColumn({type:"timestamptz", comment: "등록일시"})
     // @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP'})
     @Field({nullable: true, description: "등록일시"})

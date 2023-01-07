@@ -3,8 +3,6 @@
 # ------------------------------------------------------
 
 type UserGrp {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -19,6 +17,7 @@ type UserGrp {
 
   """상세설명"""
   desc: String
+  id: Int!
 
   """사용자 그룹명"""
   nmUserGrp: String!
@@ -34,8 +33,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type User {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -50,18 +47,17 @@ type User {
 
   """상세설명"""
   desc: String
+  id: Int!
   userGrp: UserGrp
 
   """사용자명"""
   name: String!
 
   """생년월일"""
-  birthdate: String
+  ddBirth: String
 }
 
 type HealthMarkGrp {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -76,6 +72,7 @@ type HealthMarkGrp {
 
   """상세설명"""
   desc: String
+  id: Int!
 
   """건강지표 그룹명"""
   nmGrpMark: String!
@@ -85,8 +82,6 @@ type HealthMarkGrp {
 }
 
 type HealthMark {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -101,6 +96,8 @@ type HealthMark {
 
   """상세설명"""
   desc: String
+  id: Int!
+  grpMark: HealthMarkGrp
 
   """건강지표"""
   nmMark: String!
@@ -122,8 +119,6 @@ type HealthMark {
 }
 
 type HealthRecord {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -138,6 +133,7 @@ type HealthRecord {
 
   """상세설명"""
   desc: String
+  id: Int!
   user: User
 
   """기록타입"""
@@ -222,8 +218,6 @@ type Query {
 }
 
 input FindHealthMarkGrpInput {
-  id: Int
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -238,6 +232,7 @@ input FindHealthMarkGrpInput {
 
   """상세설명"""
   desc: String
+  id: Int
 
   """건강지표 그룹명"""
   nmGrpMark: String
@@ -247,8 +242,6 @@ input FindHealthMarkGrpInput {
 }
 
 input FindHealthMarkInput {
-  id: Int
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -263,6 +256,8 @@ input FindHealthMarkInput {
 
   """상세설명"""
   desc: String
+  id: Int
+  grpMark: HealthMarkGrpInput
 
   """건강지표"""
   nmMark: String
@@ -281,6 +276,30 @@ input FindHealthMarkInput {
 
   """중요도"""
   severity: Float
+}
+
+input HealthMarkGrpInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+
+  """건강지표 그룹명"""
+  nmGrpMark: String!
+
+  """건강지표 그룹타입"""
+  tpGrp: String!
 }
 
 input FindHealthRecordInput {
@@ -344,6 +363,7 @@ input AddHealthMarkInput {
 
   """상세설명"""
   desc: String
+  grpMark: HealthMarkGrpInput
 
   """건강지표"""
   nmMark: String!
@@ -398,8 +418,6 @@ input AddHealthRecordInput {
 }
 
 input UserInput {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -414,18 +432,17 @@ input UserInput {
 
   """상세설명"""
   desc: String
+  id: Int!
   userGrp: UserGrpInput
 
   """사용자명"""
   name: String!
 
   """생년월일"""
-  birthdate: String
+  ddBirth: String
 }
 
 input UserGrpInput {
-  id: Int!
-
   """등록일시"""
   dtInsert: DateTime
 
@@ -440,6 +457,7 @@ input UserGrpInput {
 
   """상세설명"""
   desc: String
+  id: Int!
 
   """사용자 그룹명"""
   nmUserGrp: String!
@@ -492,6 +510,6 @@ input AddUserInput {
   name: String!
 
   """생년월일"""
-  birthdate: String
+  ddBirth: String
   idUserGrp: Int
 }

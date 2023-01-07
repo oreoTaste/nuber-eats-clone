@@ -8,8 +8,8 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { OCR } from './util/OCR';
 import { HealthModule } from './health/health.module';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { UsersModule } from './users/users.module';
+import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { UsersModule } from './users/users.module';
       entities: ['dist/**/*.entity{.ts,.js}'],
       subscribers: [],
       migrations: [],
-      namingStrategy: new SnakeNamingStrategy(), 
+      namingStrategy: new MySnakeNamingStrategy(), 
   }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
