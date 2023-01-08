@@ -92,7 +92,7 @@ export class HealthMark extends CoreEntity implements CoreInterface{
     severity: Severity; //중요도
 
     @OneToMany(type=>HealthRecord, (record) => record.healthMark, {lazy: true})
-    healthRecord: HealthRecord[];
+    healthRecords: HealthRecord[];
 }
 
 
@@ -106,12 +106,12 @@ export class HealthRecord extends CoreEntity implements CoreInterface{
     id: number;
 
     @ManyToOne(type=>HealthMark
-            , (healthMark)=>healthMark.healthRecord
+            , (healthMark)=>healthMark.healthRecords
             , {lazy : false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMark: HealthMark; // 건강지표 그룹
 
     @ManyToOne(type=>User
-            , (user)=>user.healthRecord
+            , (user)=>user.healthRecords
             , {lazy: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     @Field(type=>User, {nullable: true})
     user: User;

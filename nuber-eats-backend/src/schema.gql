@@ -49,12 +49,39 @@ type User {
   desc: String
   id: Int!
   userGrp: UserGrp
+  healthRecords: [HealthRecord!]
 
   """사용자명"""
-  name: String!
+  nmUser: String!
 
   """생년월일"""
   ddBirth: String
+  passwords: [UserPassword!]
+}
+
+type UserPassword {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+  ID_USER: User
+
+  """비밀번호"""
+  password: String!
+
+  """유효일자"""
+  ddExpire: String!
 }
 
 type HealthMarkGrp {
@@ -185,36 +212,30 @@ type AddHealthRecordOutput {
   idHealthRecord: Int
 }
 
-type AddUserGrpOutput {
+type SearchUserOutput {
   cnt: Float
   reason: String
-  idUserGrp: Int
+  user: [User!]
 }
 
-type AddUserOutput {
-  cnt: Float
-  reason: String
-  idUser: Int
-}
-
-type FindUserOutput {
-  cnt: Float
-  reason: String
-  user: User
-}
-
-type FindGrpUsersOutput {
+type SearchGrpUsersOutput {
   cnt: Float
   reason: String
   users: [User!]
+}
+
+type CreateAccountOutput {
+  cnt: Float
+  reason: String
+  idUser: Int
 }
 
 type Query {
   findHealthMarkGrp(input: FindHealthMarkGrpInput!): FindHealthMarkGrpOutput!
   findHealthMark(input: FindHealthMarkInput!): FindHealthMarkOutput!
   findHealthRecord(input: FindHealthRecordInput!): FindHealthRecordOutput!
-  findGrpUsers(input: FindGrpUsersInput!): FindGrpUsersOutput!
-  findUser(input: FindUserInput!): FindUserOutput!
+  searchGrpUsers(input: SearchGrpUsersInput!): SearchGrpUsersOutput!
+  searchUser(input: SearchUserInput!): SearchUserOutput!
 }
 
 input FindHealthMarkGrpInput {
@@ -309,20 +330,171 @@ input FindHealthRecordInput {
   dtRecordEnd: DateTime
 }
 
-input FindGrpUsersInput {
-  idUserGrp: Int
+input SearchGrpUsersInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int
+
+  """사용자 그룹명"""
+  nmUserGrp: String
+
+  """사용자 그룹타입"""
+  tpUserGrp: String
+  users: [UserInput!]
 }
 
-input FindUserInput {
-  idUser: Int!
+input UserInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+  userGrp: UserGrpInput
+  healthRecords: [HealthRecordInput!] = {}
+
+  """사용자명"""
+  nmUser: String!
+
+  """생년월일"""
+  ddBirth: String
+  passwords: [UserPasswordInput!]
+}
+
+input UserGrpInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+
+  """사용자 그룹명"""
+  nmUserGrp: String!
+
+  """사용자 그룹타입"""
+  tpUserGrp: String
+  users: [UserInput!]
+}
+
+input HealthRecordInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+  user: UserInput
+
+  """기록타입"""
+  tpRecord: Float!
+
+  """기록값(숫자)"""
+  record1: Float
+
+  """기록값(문자)"""
+  record2: String
+
+  """건강기록 측정일"""
+  ddRegister: String
+}
+
+input UserPasswordInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+  ID_USER: UserInput = {}
+
+  """비밀번호"""
+  password: String!
+
+  """유효일자"""
+  ddExpire: String!
+}
+
+input SearchUserInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  userGrp: UserGrpInput
+  healthRecords: [HealthRecordInput!]
+
+  """사용자명"""
+  nmUser: String
+
+  """생년월일"""
+  ddBirth: String
+  idUserGrp: Int
+  idUser: Int
 }
 
 type Mutation {
   addHealthMarkGrp(input: AddHealthMarkGrpInput!): AddHealthMarkGrpOutput!
   addHealthMark(input: AddHealthMarkInput!): AddHealthMarkOutput!
   addHealthRecord(input: AddHealthRecordInput!): AddHealthRecordOutput!
-  addUserGrp(input: AddUserGrpInput!): AddUserGrpOutput!
-  addUser(input: AddUserInput!): AddUserOutput!
+  createAccount(input: CreateAccountInput!): CreateAccountOutput!
 }
 
 input AddHealthMarkGrpInput {
@@ -417,7 +589,7 @@ input AddHealthRecordInput {
   idHealthMark: Int!
 }
 
-input UserInput {
+input CreateAccountInput {
   """등록일시"""
   dtInsert: DateTime
 
@@ -429,87 +601,27 @@ input UserInput {
 
   """수정자"""
   idUpdate: Int
-
-  """상세설명"""
-  desc: String
-  id: Int!
-  userGrp: UserGrpInput
+  healthRecords: [HealthRecordInput!]
 
   """사용자명"""
-  name: String!
+  nmUser: String!
 
   """생년월일"""
   ddBirth: String
-}
-
-input UserGrpInput {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int!
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-  id: Int!
 
   """사용자 그룹명"""
-  nmUserGrp: String!
+  nmUserGrp: String
 
   """사용자 그룹타입"""
   tpUserGrp: String
-  users: [UserInput!]
-}
 
-input AddUserGrpInput {
-  """등록일시"""
-  dtInsert: DateTime
+  """사용자 그룹 코멘트"""
+  descUserGrp: String
 
-  """등록자"""
-  idInsert: Int!
+  """사용자 코멘트"""
+  descUser: String
+  idUser: Int
 
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-
-  """사용자 그룹명"""
-  nmUserGrp: String!
-
-  """사용자 그룹타입"""
-  tpUserGrp: String
-}
-
-input AddUserInput {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int!
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-
-  """사용자명"""
-  name: String!
-
-  """생년월일"""
-  ddBirth: String
-  idUserGrp: Int
+  """비밀번호"""
+  password: String!
 }

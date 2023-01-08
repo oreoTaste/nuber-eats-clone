@@ -1,32 +1,36 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { AddUserGrpInput, AddUserGrpOutput } from './dtos/add-user-grp.dto';
-import { AddUserInput, AddUserOutput } from './dtos/add-user.dto';
-import { FindUserInput, FindUserOutput } from './dtos/find-user.dto';
-import { FindGrpUsersInput, FindGrpUsersOutput } from './dtos/find-grp-uses.dto';
+import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
+import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-uses.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 
 @Resolver(of => User)
 export class UsersResolver {
     constructor(private readonly service: UsersService) {}
 
-    @Mutation(type => AddUserGrpOutput)
-    addUserGrp(@Args('input') input: AddUserGrpInput): Promise<AddUserGrpOutput> {
-        return this.service.addUserGrp(input);
+    /** 
+     * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
+    */
+    @Mutation(type => CreateAccountOutput)
+    createAccount(@Args('input')input: CreateAccountInput): Promise<CreateAccountOutput> {
+        return this.service.createAccount(input);
     }
 
-    @Mutation(type => AddUserOutput)
-    addUser(@Args('input') input: AddUserInput): Promise<AddUserOutput>{
-        return this.service.addUser(input);
+    /** 
+     * @description: 그룹내 사용자 조회 (사용자 그룹 검색 -> 사용자 조회)
+    */    
+    @Query(type => SearchGrpUsersOutput)
+    searchGrpUsers(@Args('input') input: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
+        return this.service.searchGrpUsers(input);
     }
 
-    @Query(type => FindGrpUsersOutput)
-    findGrpUsers(@Args('input') input: FindGrpUsersInput): Promise<FindGrpUsersOutput> {
-        return this.service.findGrpUsers(input);
+    /** 
+     * @description: 사용자 조회 (사용자 검색)
+    */
+    @Query(type => SearchUserOutput)
+    searchUser(@Args('input') input: SearchUserInput): Promise<SearchUserOutput> {
+        return this.service.searchUser(input);
     }
 
-    @Query(type => FindUserOutput)
-    findUser(@Args('input') input: FindUserInput): Promise<FindUserOutput> {
-        return this.service.findUser(input);
-    }
 }

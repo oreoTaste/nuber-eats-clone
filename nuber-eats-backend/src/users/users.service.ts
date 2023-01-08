@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AddUserInput, AddUserOutput } from './dtos/add-user.dto';
 import { User, UserGrp } from './entities/user.entity';
-import { AddUserGrpInput, AddUserGrpOutput } from './dtos/add-user-grp.dto';
-import { FindGrpUsersInput, FindGrpUsersOutput } from './dtos/find-grp-uses.dto';
-import { FindUserInput, FindUserOutput } from './dtos/find-user.dto';
+import { ILike, Repository } from 'typeorm';
+import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
+import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
+import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-uses.dto';
 
 @Injectable()
 export class UsersService {
@@ -13,54 +12,73 @@ export class UsersService {
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>
                ){}
 
-    async addUserGrp(addUserGrpInput: AddUserGrpInput): Promise<AddUserGrpOutput>{
+    /** 
+     * @description: 그룹내 사용자 조회 (사용자 그룹 검색 -> 사용자 조회)
+    */    
+    async searchGrpUsers({nmUserGrp, ...etc}: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
         try {
-            let userGrp = await this.userGrp.save(addUserGrpInput);
-            if(userGrp) {
-                return {cnt: 1, reason: 'ok', idUserGrp: userGrp.id};
-            } else {
-                return {cnt: 0, reason: 'error while adding userGrp', idUserGrp: null};
-            }
-        } catch {
-            return {cnt: 0, reason: 'error while adding userGrp', idUserGrp: null};
-        }
-    }
-
-    async addUser(addUserInput: AddUserInput): Promise<AddUserOutput>{
-        try {
-            if(!addUserInput.idUserGrp) {
-                return {cnt: 0, reason: 'no user group found', idUser: null};
-            }
-            let userGrp = await this.userGrp.findOne({where: {id: addUserInput.idUserGrp}})
-            let user = await this.user.save(
-                this.user.create({ ...addUserInput, userGrp})
-            );
-            if(user) {
-                return {cnt: 1, reason: 'ok', idUser: user.id};
-            }
-        } catch {
-            return {cnt: 0, reason: 'error while adding user', idUser: null};
-        }
-    }
-
-    async findGrpUsers({idUserGrp}: FindGrpUsersInput): Promise<FindGrpUsersOutput>{
-        let userGrp = await this.userGrp.findOne({where: {id: idUserGrp}});
-        if(userGrp) {
-            let [userList, cnt] = await this.user.findAndCount({where: {userGrp: {id: userGrp.id}}});
+            let [userGrp, cnt] = await this.userGrp.findAndCount({relations: ['users'], where: {nmUserGrp: ILike(`%${nmUserGrp}%`), ...etc}})
             if(cnt == 0) {
-                return {users: userList, cnt, reason:"no user found in the group"};
-            }
-            return {users: userList, cnt, reason:"ok"};
-        } else {
-            return {users: null, cnt: 0, reason:"no user group found"};
+                return {cnt, reason: `couldn't found user group`};
+            } else if(cnt > 1) {
+                let users = userGrp.map(el => el.users).flat();
+                return {users, cnt: users.length, reason: 'ok'};
+            } else {
+                return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok'};
+            }    
+        } catch {
+            return {cnt: 0, reason: `error while searching user group`};
         }
     }
 
-    async findUser({idUser}: FindUserInput): Promise<FindUserOutput>{
-        let user = await this.user.findOne({where: {id: idUser}});
-        if(user) {
-            return {cnt:1, reason: "ok", user};
+    /** 
+     * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
+    */
+    async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
+        let accountUserGrp: UserGrp;
+        try {
+            let [userGrp, cnt] = await this.userGrp.findAndCount({where: {nmUserGrp, tpUserGrp, desc: descUserGrp}});
+            if(cnt == 0) {
+                accountUserGrp = await this.userGrp.save({nmUserGrp, tpUserGrp, descUserGrp, ...etc})
+            } else if(cnt == 1){
+                accountUserGrp = userGrp[0];
+            } else {
+                return {cnt:0, reason: 'found multiple user groups while creating account'};
+            }
+        } catch {
+            return {cnt:0, reason: 'error searching user groups'};
         }
-        return {cnt: 0, reason: "no user found for the id", user: null};
+
+        try {
+            let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
+            if(!existingUser) {
+                let account = await this.user.save(this.user.create({nmUser, ddBirth, desc:descUser, ...etc, userGrp:accountUserGrp}));
+                return {cnt: 1, reason: 'ok', idUser: account.id};
+            } else {
+                return {cnt: 0, reason: 'found user already', idUser: null};
+            }
+        } catch(e){
+            console.log(e);
+            return {cnt: 0, reason: 'error while creating user account', idUser: null};
+        }
+    }
+    
+    /** 
+     * @description: 사용자 조회 (사용자 검색)
+    */
+    async searchUser({idUserGrp, idUser, nmUser, ...etc}: SearchUserInput): Promise<SearchUserOutput>{
+        try {
+            let [user, cntUser] = await this.user.findAndCount({where: {id: idUser
+                , nmUser: ILike(`%${nmUser? nmUser: ''}%`)
+                , userGrp:{id: idUserGrp}
+                , ...etc
+                 }});
+            if(cntUser > 0) {
+                return {cnt:1, reason: "ok", user};
+            }
+            return {cnt: 0, reason: "no user found for the id", user: null};
+        } catch {
+            return {cnt: 0, reason: "error while searching user", user: null};
+        }
     }
 }
