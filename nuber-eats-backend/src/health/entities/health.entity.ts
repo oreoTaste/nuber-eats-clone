@@ -29,7 +29,7 @@ export class HealthMarkGrp extends CoreEntity implements CoreInterface{
 
     @OneToMany(type=>HealthMark
             , (mark) => mark.grpMark
-            , {lazy: true, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+            , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMarks: HealthMark[];
 }
 
@@ -49,7 +49,7 @@ export class HealthMark extends CoreEntity implements CoreInterface{
 
     @ManyToOne(type=>HealthMarkGrp
             , (grp)=>grp.healthMarks
-            , {lazy : false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+            , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     @JoinColumn({ name: "ID_HEALTH_MARK_GRP" })
     @Field({nullable: true})
     @IsOptional()
@@ -91,7 +91,7 @@ export class HealthMark extends CoreEntity implements CoreInterface{
     @IsOptional()
     severity: Severity; //중요도
 
-    @OneToMany(type=>HealthRecord, (record) => record.healthMark, {lazy: true})
+    @OneToMany(type=>HealthRecord, (record) => record.healthMark, {eager: false})
     healthRecords: HealthRecord[];
 }
 
@@ -107,12 +107,12 @@ export class HealthRecord extends CoreEntity implements CoreInterface{
 
     @ManyToOne(type=>HealthMark
             , (healthMark)=>healthMark.healthRecords
-            , {lazy : false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+            , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMark: HealthMark; // 건강지표 그룹
 
     @ManyToOne(type=>User
             , (user)=>user.healthRecords
-            , {lazy: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+            , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     @Field(type=>User, {nullable: true})
     user: User;
 

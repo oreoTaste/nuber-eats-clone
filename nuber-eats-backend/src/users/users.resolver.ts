@@ -4,6 +4,7 @@ import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-use
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
+import { LoginInput, LoginOutput } from './dtos/login.dto';
 
 @Resolver(of => User)
 export class UsersResolver {
@@ -33,4 +34,11 @@ export class UsersResolver {
         return this.service.searchUser(input);
     }
 
+    /**
+     * @description: 로그인
+     */
+    @Query(type => LoginOutput)
+    login(@Args('input') input: LoginInput): Promise<LoginOutput> {
+        return this.service.login(input);
+    }
 }

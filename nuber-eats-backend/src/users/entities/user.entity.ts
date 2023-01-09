@@ -42,15 +42,20 @@ export class User extends CoreEntity implements CoreInterface{
         @IsNumber()
         id: number;
 
+        @Column({comment: "사용자ID"})
+        @Field({description: "사용자ID"})
+        @IsString()
+        idLogin: string;
+
         @ManyToOne(type=>UserGrp
                 , (userGrp) => userGrp.users
-                , {eager: true, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+                , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
         @Field(type => UserGrp, {nullable: true})
         userGrp: UserGrp;
 
         @OneToMany(type=>HealthRecord
                 , (record) => record.user
-                , {lazy: true, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+                , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
         @Field(type => [HealthRecord], {nullable: true})
         healthRecords: HealthRecord[];
 
@@ -69,7 +74,7 @@ export class User extends CoreEntity implements CoreInterface{
 
         @OneToMany(type=>UserPassword
                 , (password)=>password.user
-                , {createForeignKeyConstraints: false, nullable: true})
+                , {eager: false, createForeignKeyConstraints: false, nullable: true})
         @Field(type => [UserPassword], {nullable: true})
         passwords: UserPassword[];
 }
@@ -85,7 +90,7 @@ export class UserPassword extends CoreEntity implements CoreInterface{
 
         @ManyToOne(type=>User
                 , (user)=> user.passwords
-                , {lazy: true, createForeignKeyConstraints: false, nullable: true})
+                , {eager: false, createForeignKeyConstraints: false, nullable: true})
         @Field(type => User, {name: "ID_USER", nullable: true})
         user?: User;
 

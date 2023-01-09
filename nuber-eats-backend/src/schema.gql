@@ -48,6 +48,9 @@ type User {
   """상세설명"""
   desc: String
   id: Int!
+
+  """사용자ID"""
+  idLogin: String!
   userGrp: UserGrp
   healthRecords: [HealthRecord!]
 
@@ -230,12 +233,19 @@ type CreateAccountOutput {
   idUser: Int
 }
 
+type LoginOutput {
+  cnt: Float
+  reason: String
+  user: User
+}
+
 type Query {
   findHealthMarkGrp(input: FindHealthMarkGrpInput!): FindHealthMarkGrpOutput!
   findHealthMark(input: FindHealthMarkInput!): FindHealthMarkOutput!
   findHealthRecord(input: FindHealthRecordInput!): FindHealthRecordOutput!
   searchGrpUsers(input: SearchGrpUsersInput!): SearchGrpUsersOutput!
   searchUser(input: SearchUserInput!): SearchUserOutput!
+  login(input: LoginInput!): LoginOutput!
 }
 
 input FindHealthMarkGrpInput {
@@ -371,8 +381,11 @@ input UserInput {
   """상세설명"""
   desc: String
   id: Int!
+
+  """사용자ID"""
+  idLogin: String!
   userGrp: UserGrpInput
-  healthRecords: [HealthRecordInput!] = {}
+  healthRecords: [HealthRecordInput!]
 
   """사용자명"""
   nmUser: String!
@@ -454,7 +467,7 @@ input UserPasswordInput {
   """상세설명"""
   desc: String
   id: Int!
-  ID_USER: UserInput = {}
+  ID_USER: UserInput
 
   """비밀번호"""
   password: String!
@@ -478,6 +491,9 @@ input SearchUserInput {
 
   """상세설명"""
   desc: String
+
+  """사용자ID"""
+  idLogin: String
   userGrp: UserGrpInput
   healthRecords: [HealthRecordInput!]
 
@@ -488,6 +504,14 @@ input SearchUserInput {
   ddBirth: String
   idUserGrp: Int
   idUser: Int
+}
+
+input LoginInput {
+  """비밀번호"""
+  password: String!
+
+  """사용자ID"""
+  idLogin: String!
 }
 
 type Mutation {
@@ -601,6 +625,9 @@ input CreateAccountInput {
 
   """수정자"""
   idUpdate: Int
+
+  """사용자ID"""
+  idLogin: String!
   healthRecords: [HealthRecordInput!]
 
   """사용자명"""

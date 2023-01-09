@@ -4,8 +4,8 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { User, UserGrp } from "../entities/user.entity";
 
 @InputType()
-export class CreateAccountInput extends IntersectionType(OmitType(User, ['id', 'passwords', 'desc', 'userGrp'], InputType)
-                                                       , PartialType(OmitType(UserGrp, ['id', 'users', 'desc', 'idInsert'], InputType), InputType)){
+export class CreateAccountInput extends IntersectionType(OmitType(User, ['id', 'passwords', 'desc', 'userGrp'] as const, InputType)
+                                                       , PartialType(OmitType(UserGrp, ['id', 'users', 'desc', 'idInsert'] as const, InputType), InputType)){
     @Field({description: "사용자 그룹 코멘트", nullable: true})
     @IsString()
     @IsOptional()
