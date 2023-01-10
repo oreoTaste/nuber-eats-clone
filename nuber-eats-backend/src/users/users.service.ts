@@ -19,7 +19,7 @@ export class UsersService {
     */    
     async searchGrpUsers({nmUserGrp, ...etc}: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
         try {
-            let [userGrp, cnt] = await this.userGrp.findAndCount({relations: ['users'], where: {nmUserGrp: ILike(`%${nmUserGrp}%`), ...etc}})
+            let [userGrp, cnt] = await this.userGrp.findAndCount({relations: ['users'], where: {nmUserGrp: ILike(`%${nmUserGrp}%`), ...etc}});
             if(cnt == 0) {
                 return {cnt, reason: `couldn't found user group`};
             } else if(cnt > 1) {

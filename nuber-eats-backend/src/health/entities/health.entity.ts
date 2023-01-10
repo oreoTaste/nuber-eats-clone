@@ -107,7 +107,7 @@ export class HealthRecord extends CoreEntity implements CoreInterface{
 
     @ManyToOne(type=>HealthMark
             , (healthMark)=>healthMark.healthRecords
-            , {eager: false, nullable: true, createForeignKeyConstraints: false, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
+            , {eager: false, nullable: true, createForeignKeyConstraints: true, orphanedRowAction: "disable", onDelete: "NO ACTION", onUpdate: "CASCADE"})
     healthMark: HealthMark; // 건강지표 그룹
 
     @ManyToOne(type=>User
@@ -117,7 +117,7 @@ export class HealthRecord extends CoreEntity implements CoreInterface{
     user: User;
 
     @Column({comment: "기록타입"})
-    @Field({description: "기록타입"})
+    @Field(type => Int, {description: "기록타입"})
     @IsNumber()
     tpRecord: number;
 

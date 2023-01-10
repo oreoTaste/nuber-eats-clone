@@ -1,12 +1,12 @@
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { HealthMark } from './entities/health.entity';
 import { HealthService } from './health.service';
-import { AddHealthMarkInput, AddHealthMarkOutput } from './dtos/add-health-mark.dto';
-import { AddHealthMarkGrpInput, AddHealthMarkGrpOutput } from './dtos/add-health-mark-grp.dto.';
+import { CreateHealthMarkInput, CreateHealthMarkOutput } from './dtos/create-health-mark.dto';
+import { CreateHealthMarkGrpInput, CreateHealthMarkGrpOutput } from './dtos/create-health-mark-grp.dto.';
 import { FindHealthRecordInput, FindHealthRecordOutput } from './dtos/find-health-record.dto';
 import { FindHealthMarkGrpInput, FindHealthMarkGrpOutput } from './dtos/find-health-mark-grp.dto';
 import { FindHealthMarkInput, FindHealthMarkOutput } from './dtos/find-health-mark.dto';
-import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
+import { CreateHealthRecordInput, CreateHealthRecordOutput } from './dtos/create-health-record.dto';
 
 @Resolver(of => HealthMark)
 export class HealthResolver {
@@ -15,9 +15,9 @@ export class HealthResolver {
     /**
      * @description 건강지표 그룹 추가
      */
-    @Mutation(type=> AddHealthMarkGrpOutput)
-    addHealthMarkGrp(@Args('input') input: AddHealthMarkGrpInput): Promise<AddHealthMarkGrpOutput> {
-        return this.service.addHealthMarkGrp(input);
+    @Mutation(type=> CreateHealthMarkGrpOutput)
+    createHealthMarkGrp(@Args('input') input: CreateHealthMarkGrpInput): Promise<CreateHealthMarkGrpOutput> {
+        return this.service.createHealthMarkGrp(input);
     }
 
     /**
@@ -31,9 +31,9 @@ export class HealthResolver {
     /**
      * @description 건강지표 추가
      */
-    @Mutation(type=> AddHealthMarkOutput)
-    addHealthMark(@Args('input') input: AddHealthMarkInput): Promise<AddHealthMarkOutput> {
-        return this.service.addHealthMark(input);
+    @Mutation(type=> CreateHealthMarkOutput)
+    createHealthMark(@Args('input') input: CreateHealthMarkInput): Promise<CreateHealthMarkOutput> {
+        return this.service.createHealthMark(input);
     }
 
     /**
@@ -47,9 +47,9 @@ export class HealthResolver {
     /**
      * @description 사용자 건강기록 추가
      */
-    @Mutation(type => AddHealthRecordOutput)
-    addHealthRecord(@Args('input') input: AddHealthRecordInput): Promise<AddHealthRecordOutput> {
-        return this.service.addHealthRecord(input);
+    @Mutation(type => CreateHealthRecordOutput)
+    createHealthRecord(@Args('input') input: CreateHealthRecordInput): Promise<CreateHealthRecordOutput> {
+        return this.service.createHealthRecord(input);
     }
 
     /**

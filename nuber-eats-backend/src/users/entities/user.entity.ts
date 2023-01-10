@@ -3,8 +3,9 @@ import { IsNumber, IsOptional, IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { CoreInterface } from "src/common/entities/core.interface";
 import { HealthRecord } from "src/health/entities/health.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-
+import { BeforeInsert, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import * as bcrypt from 'bcrypt';
+import { InternalServerErrorException } from "@nestjs/common";
 
 @ObjectType()
 @InputType("UserGrpInput", {isAbstract: true})
@@ -104,4 +105,14 @@ export class UserPassword extends CoreEntity implements CoreInterface{
         @IsString()
         @Length(8,8)
         ddExpire: string;
+
+        // @BeforeInsert()
+        // async encryptPassword(): Promise<void> {
+        //         try {
+        //                 this.password = await bcrypt.hash(this.password, 10);
+        //         } catch(e) {
+        //                 console.log(e);
+        //                 throw new InternalServerErrorException();
+        //         }
+        // }
 }

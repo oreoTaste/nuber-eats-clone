@@ -7,8 +7,8 @@ export class FindHealthRecordInput {
     @Field(type => Int)
     idUser: number;
 
-    @Field(type => Int)
-    idHealthRecord: number;
+    @Field(type => Int, {nullable: true})
+    idHealthMark?: number;
 
     @Field({nullable: true})
     dtRecordStart?: Date;

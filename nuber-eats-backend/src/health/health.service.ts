@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, ILike, Like, Repository } from 'typeorm';
 import { HealthMark, HealthMarkGrp, HealthRecord } from './entities/health.entity';
-import { AddHealthMarkInput, AddHealthMarkOutput } from './dtos/add-health-mark.dto';
-import { AddHealthMarkGrpInput, AddHealthMarkGrpOutput } from './dtos/add-health-mark-grp.dto.';
+import { CreateHealthMarkInput, CreateHealthMarkOutput } from './dtos/create-health-mark.dto';
+import { CreateHealthMarkGrpInput, CreateHealthMarkGrpOutput } from './dtos/create-health-mark-grp.dto.';
 import { FindHealthRecordInput, FindHealthRecordOutput } from './dtos/find-health-record.dto';
 import { User } from 'src/users/entities/user.entity';
 import { FindHealthMarkGrpInput, FindHealthMarkGrpOutput } from './dtos/find-health-mark-grp.dto';
 import { FindHealthMarkInput, FindHealthMarkOutput } from './dtos/find-health-mark.dto';
-import { AddHealthRecordInput, AddHealthRecordOutput } from './dtos/add-health-record.dto';
+import { CreateHealthRecordInput, CreateHealthRecordOutput } from './dtos/create-health-record.dto';
 
 @Injectable()
 export class HealthService {
@@ -21,16 +21,16 @@ export class HealthService {
     /**
      * @description 건강지표그룹 입력 (건강지표그룹 정보 필수)
      */
-    async addHealthMarkGrp({...etc}: AddHealthMarkGrpInput): Promise<AddHealthMarkGrpOutput>{
+    async createHealthMarkGrp({...etc}: CreateHealthMarkGrpInput): Promise<CreateHealthMarkGrpOutput>{
         try {
             let rslt = await this.healthMarkGrp.save({...etc});
             if(rslt) {
                 return {cnt: 1, reason: 'ok', idHealthMarkGrp: rslt.id};
             } else {
-                return {cnt: 0, reason: `couldn't add a health group mark`, idHealthMarkGrp: rslt.id};
+                return {cnt: 0, reason: `couldn't create a health group mark`, idHealthMarkGrp: rslt.id};
             }
         } catch {
-            return {cnt: 0, reason: 'error while adding a health group mark', idHealthMarkGrp: null};
+            return {cnt: 0, reason: 'error while creating a health group mark', idHealthMarkGrp: null};
         }
     }
 
@@ -41,12 +41,12 @@ export class HealthService {
         try {
             let rslt;
             if(!nmGrpMark || nmGrpMark.length == 0) {
-                rslt = await this.healthMarkGrp.findBy({...etc});
+                rslt = await this.healthMarkGrp.find({where: {...etc}});
             } else {
-                rslt = await this.healthMarkGrp.findBy({...etc, nmGrpMark: ILike(`%${nmGrpMark? nmGrpMark: ''}%`)});
+                rslt = await this.healthMarkGrp.find({where: {...etc, nmGrpMark: ILike(`%${nmGrpMark? nmGrpMark: ''}%`)}});
             }
-            if(rslt) {
-                return {cnt: 1, reason: 'ok', healthMarkGrp: rslt};
+            if(rslt.length) {
+                return {cnt: rslt.length, reason: 'ok', healthMarkGrp: rslt};
             } else {
                 return {cnt: 0, reason: 'no health mark group found', healthMarkGrp: null};
             }
@@ -69,7 +69,7 @@ export class HealthService {
     /**
      * @description 건강지표 입력 (건강지표 정보 및 건강지표그룹ID 필수)
      */
-    async addHealthMark({idHealthMarkGrp, ...etc}: AddHealthMarkInput): Promise<AddHealthMarkOutput>{
+    async createHealthMark({idHealthMarkGrp, ...etc}: CreateHealthMarkInput): Promise<CreateHealthMarkOutput>{
         try {
             let {ok, reason, id} = await this.checkHealthMarkGroup(idHealthMarkGrp);
             if(!ok) {
@@ -80,10 +80,10 @@ export class HealthService {
             if(rslt) {
                 return {cnt: 1, reason: 'ok', idHealthMark: rslt.id};
             } else {
-                return {cnt: 0, reason: `couldn't add a health mark`, idHealthMark: rslt.id};
+                return {cnt: 0, reason: `couldn't create a health mark`, idHealthMark: rslt.id};
             }
         } catch {
-            return {cnt: 0, reason: 'error while adding a health mark', idHealthMark: null};
+            return {cnt: 0, reason: 'error while creating a health mark', idHealthMark: null};
         }
     }
 
@@ -102,8 +102,8 @@ export class HealthService {
             } else {
                 healthMark = await this.healthMark.find({where: {...etc, nmMark: ILike(`%${nmMark? nmMark: ''}%`)}});
             }
-            if(healthMark) {
-                return {cnt: 1, reason: 'ok', healthMark};
+            if(healthMark.length) {
+                return {cnt: healthMark.length, reason: 'ok', healthMark};
             } else {
                 return {cnt: 0, reason: `couldn't find a health mark`, healthMark: null};
             }
@@ -116,17 +116,21 @@ export class HealthService {
     /**
      * @description 사용자 건강기록 입력
      */
-    async addHealthRecord({idUser, tpRecord, idHealthMark, ...etc}: AddHealthRecordInput): Promise<AddHealthRecordOutput> {
+    async createHealthRecord({idUser, tpRecord, idHealthMark, ...etc}: CreateHealthRecordInput): Promise<CreateHealthRecordOutput> {
         try {
             if(!tpRecord || !idUser || !idHealthMark) {
                 return {cnt: 0, reason: 'no userid or record type or health mark input', idHealthRecord: null}
+            }
+            let healthMark = await this.healthMark.findOne({where: {id: idHealthMark}});
+            if(!healthMark) {
+                return {cnt: 0, reason: 'no health mark found', idHealthRecord: null}
             }
             let user = await this.user.findOne({where: {id: idUser}})
             if(!user) {
                 return {cnt: 0, reason: 'no user found', idHealthRecord: null}
             }
 
-            let record = await this.healthRecord.save(this.healthRecord.create({...etc, user}))
+            let record = await this.healthRecord.save(this.healthRecord.create({...etc, tpRecord, user, healthMark}))
             if(!record) {
                 return {cnt: 0, reason: 'error while inserting a health record', idHealthRecord: null};
             }
@@ -138,9 +142,9 @@ export class HealthService {
     /**
      * @description 사용자 건강기록 조회
      */
-    async findHealthRecord({idHealthRecord, idUser, dtRecordStart, dtRecordEnd}: FindHealthRecordInput): Promise<FindHealthRecordOutput> {
+    async findHealthRecord({idHealthMark, idUser, dtRecordStart, dtRecordEnd}: FindHealthRecordInput): Promise<FindHealthRecordOutput> {
         try {
-            if(!idHealthRecord || !idUser) {
+            if(/*!idHealthMark || */!idUser) {
                 return {cnt: 0, reason: 'no userid or health record input', healthRecord: null}
             }
             let user = await this.user.findOne({where: {id: idUser}})
@@ -148,7 +152,19 @@ export class HealthService {
                 return {cnt: 0, reason: 'no user found', healthRecord: null}
             }
 
-            let [records, cnt] = await this.healthRecord.findAndCount({where: [{user: {id: idUser}}, {healthMark: {id: idHealthRecord}}, {dtInsert: Between(dtRecordStart, dtRecordEnd)}]})
+            let condition = {};
+            if(idUser) {
+                condition['user'] = {'id': idUser};
+            }
+            if(idHealthMark) {
+                condition['healthMark'] = {'id': idHealthMark}
+            }
+            if(dtRecordStart || dtRecordEnd) {
+                condition['dtInsert'] = Between(dtRecordStart?dtRecordStart:0, dtRecordEnd?dtRecordEnd:0);
+            }
+
+            let [records, cnt] = await this.healthRecord.findAndCount({relations: ['healthMark'], where: condition})
+            console.log(records);
             if(cnt == 0) {
                 return {cnt: 0, reason: 'no health record found', healthRecord: null};
             }

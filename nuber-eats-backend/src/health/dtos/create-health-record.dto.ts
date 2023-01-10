@@ -3,7 +3,7 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { HealthRecord } from "../entities/health.entity";
 
 @InputType()
-export class AddHealthRecordInput extends OmitType(HealthRecord, ['id'], InputType) {
+export class CreateHealthRecordInput extends OmitType(HealthRecord, ['id'], InputType) {
     @Field(type => Int)
     idUser: number;
     
@@ -12,7 +12,7 @@ export class AddHealthRecordInput extends OmitType(HealthRecord, ['id'], InputTy
 }
 
 @ObjectType()
-export class AddHealthRecordOutput extends CommonOutput{
+export class CreateHealthRecordOutput extends CommonOutput{
     @Field(type => Int, {nullable: true})
     idHealthRecord?: number;
 }

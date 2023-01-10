@@ -1,4 +1,4 @@
-import { AfterInsert, BeforeInsert, Table } from 'typeorm';
+import { Table } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies/snake-naming.strategy';
 
 export class MySnakeNamingStrategy extends SnakeNamingStrategy {
@@ -37,6 +37,6 @@ export class MySnakeNamingStrategy extends SnakeNamingStrategy {
     foreignKeyName(tableOrName: Table | string, columnNames: string[], referencedTablePath?: string, referencedColumnNames?: string[]): string {
         tableOrName = typeof tableOrName === "string" ? tableOrName : tableOrName.name;
         this.cntTableForeignKey.set(tableOrName, (this.cntTableForeignKey.get(tableOrName) | 0) + 1); 
-        return`FK_${tableOrName}_${Math.floor(this.cntTableForeignKey.get(tableOrName)/2)}`;
+        return`FK_${tableOrName}${Math.floor(this.cntTableForeignKey.get(tableOrName)/2)}`;
     }
 }

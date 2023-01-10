@@ -167,7 +167,7 @@ type HealthRecord {
   user: User
 
   """기록타입"""
-  tpRecord: Float!
+  tpRecord: Int!
 
   """기록값(숫자)"""
   record1: Float
@@ -179,13 +179,13 @@ type HealthRecord {
   ddRegister: String
 }
 
-type AddHealthMarkOutput {
+type CreateHealthMarkOutput {
   cnt: Float
   reason: String
   idHealthMark: Int
 }
 
-type AddHealthMarkGrpOutput {
+type CreateHealthMarkGrpOutput {
   cnt: Float
   reason: String
   idHealthMarkGrp: Int
@@ -209,7 +209,7 @@ type FindHealthMarkOutput {
   healthMark: [HealthMark!]
 }
 
-type AddHealthRecordOutput {
+type CreateHealthRecordOutput {
   cnt: Float
   reason: String
   idHealthRecord: Int
@@ -335,7 +335,7 @@ input HealthMarkGrpInput {
 
 input FindHealthRecordInput {
   idUser: Int!
-  idHealthRecord: Int!
+  idHealthMark: Int
   dtRecordStart: DateTime
   dtRecordEnd: DateTime
 }
@@ -439,7 +439,7 @@ input HealthRecordInput {
   user: UserInput
 
   """기록타입"""
-  tpRecord: Float!
+  tpRecord: Int!
 
   """기록값(숫자)"""
   record1: Float
@@ -515,13 +515,13 @@ input LoginInput {
 }
 
 type Mutation {
-  addHealthMarkGrp(input: AddHealthMarkGrpInput!): AddHealthMarkGrpOutput!
-  addHealthMark(input: AddHealthMarkInput!): AddHealthMarkOutput!
-  addHealthRecord(input: AddHealthRecordInput!): AddHealthRecordOutput!
+  createHealthMarkGrp(input: CreateHealthMarkGrpInput!): CreateHealthMarkGrpOutput!
+  createHealthMark(input: CreateHealthMarkInput!): CreateHealthMarkOutput!
+  createHealthRecord(input: CreateHealthRecordInput!): CreateHealthRecordOutput!
   createAccount(input: CreateAccountInput!): CreateAccountOutput!
 }
 
-input AddHealthMarkGrpInput {
+input CreateHealthMarkGrpInput {
   """등록일시"""
   dtInsert: DateTime
 
@@ -544,7 +544,7 @@ input AddHealthMarkGrpInput {
   tpGrp: String!
 }
 
-input AddHealthMarkInput {
+input CreateHealthMarkInput {
   """등록일시"""
   dtInsert: DateTime
 
@@ -581,7 +581,7 @@ input AddHealthMarkInput {
   idHealthMarkGrp: Int!
 }
 
-input AddHealthRecordInput {
+input CreateHealthRecordInput {
   """등록일시"""
   dtInsert: DateTime
 
@@ -599,7 +599,7 @@ input AddHealthRecordInput {
   user: UserInput
 
   """기록타입"""
-  tpRecord: Float!
+  tpRecord: Int!
 
   """기록값(숫자)"""
   record1: Float
