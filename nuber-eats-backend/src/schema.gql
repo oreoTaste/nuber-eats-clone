@@ -59,32 +59,9 @@ type User {
 
   """생년월일"""
   ddBirth: String
-  passwords: [UserPassword!]
-}
-
-type UserPassword {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int!
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-  id: Int!
-  ID_USER: User
 
   """비밀번호"""
   password: String!
-
-  """유효일자"""
-  ddExpire: String!
 }
 
 type HealthMarkGrp {
@@ -236,7 +213,7 @@ type CreateAccountOutput {
 type LoginOutput {
   cnt: Float
   reason: String
-  user: User
+  token: String
 }
 
 type Query {
@@ -362,6 +339,60 @@ input SearchGrpUsersInput {
 
   """사용자 그룹타입"""
   tpUserGrp: String
+}
+
+input SearchUserInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+
+  """사용자ID"""
+  idLogin: String
+  userGrp: UserGrpInput
+  healthRecords: [HealthRecordInput!]
+
+  """사용자명"""
+  nmUser: String
+
+  """생년월일"""
+  ddBirth: String
+  idUserGrp: Int
+  idUser: Int
+}
+
+input UserGrpInput {
+  """등록일시"""
+  dtInsert: DateTime
+
+  """등록자"""
+  idInsert: Int!
+
+  """수정일시"""
+  dtUpdate: DateTime
+
+  """수정자"""
+  idUpdate: Int
+
+  """상세설명"""
+  desc: String
+  id: Int!
+
+  """사용자 그룹명"""
+  nmUserGrp: String!
+
+  """사용자 그룹타입"""
+  tpUserGrp: String
   users: [UserInput!]
 }
 
@@ -392,32 +423,9 @@ input UserInput {
 
   """생년월일"""
   ddBirth: String
-  passwords: [UserPasswordInput!]
-}
 
-input UserGrpInput {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int!
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-  id: Int!
-
-  """사용자 그룹명"""
-  nmUserGrp: String!
-
-  """사용자 그룹타입"""
-  tpUserGrp: String
-  users: [UserInput!]
+  """비밀번호"""
+  password: String!
 }
 
 input HealthRecordInput {
@@ -451,67 +459,12 @@ input HealthRecordInput {
   ddRegister: String
 }
 
-input UserPasswordInput {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int!
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-  id: Int!
-  ID_USER: UserInput
-
-  """비밀번호"""
-  password: String!
-
-  """유효일자"""
-  ddExpire: String!
-}
-
-input SearchUserInput {
-  """등록일시"""
-  dtInsert: DateTime
-
-  """등록자"""
-  idInsert: Int
-
-  """수정일시"""
-  dtUpdate: DateTime
-
-  """수정자"""
-  idUpdate: Int
-
-  """상세설명"""
-  desc: String
-
-  """사용자ID"""
-  idLogin: String
-  userGrp: UserGrpInput
-  healthRecords: [HealthRecordInput!]
-
-  """사용자명"""
-  nmUser: String
-
-  """생년월일"""
-  ddBirth: String
-  idUserGrp: Int
-  idUser: Int
-}
-
 input LoginInput {
-  """비밀번호"""
-  password: String!
-
   """사용자ID"""
   idLogin: String!
+
+  """비밀번호"""
+  password: String!
 }
 
 type Mutation {

@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserGrp, UserPassword } from './entities/user.entity';
-import { ILike, Repository, MoreThan } from 'typeorm';
+import { User, UserGrp } from './entities/user.entity';
+import { ILike, Repository, MoreThan, FindOptionsWhere } from 'typeorm';
 import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-uses.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
+import { env } from 'process';
 
 @Injectable()
 export class UsersService {
     constructor(@InjectRepository(User) private readonly user: Repository<User>,
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>,
-                @InjectRepository(UserPassword) private readonly userPassword: Repository<UserPassword>
                ){}
 
     /** 
@@ -28,7 +28,8 @@ export class UsersService {
             } else {
                 return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok'};
             }    
-        } catch {
+        } catch(e){
+            console.log(e);
             return {cnt: 0, reason: `error while searching user group`};
         }
     }
@@ -47,16 +48,15 @@ export class UsersService {
             } else {
                 return {cnt:0, reason: 'found multiple user groups while creating account'};
             }
-        } catch {
+        } catch(e){
+            console.log(e);
             return {cnt:0, reason: 'error searching user groups'};
         }
 
         try {
             let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
             if(!existingUser) {
-                let newpassword = await this.userPassword.save(this.userPassword.create({password, ...etc}));
-                console.log(newpassword);
-                let account = await this.user.save(this.user.create({nmUser, ddBirth, desc:descUser, ...etc, userGrp:accountUserGrp, passwords: [newpassword]}));
+                let account = await this.user.save(this.user.create({nmUser, ddBirth, desc:descUser, ...etc, userGrp:accountUserGrp, password}));
                 return {cnt: 1, reason: 'ok', idUser: account.id};
             } else {
                 return {cnt: 0, reason: 'found user already', idUser: null};
@@ -72,16 +72,17 @@ export class UsersService {
     */
     async searchUser({idUserGrp, idUser, nmUser, ...etc}: SearchUserInput): Promise<SearchUserOutput>{
         try {
-            let [user, cntUser] = await this.user.findAndCount({where: {id: idUser
+            let [user, cntUser] = await this.user.findAndCount({relations: ['userGrp'], where: {id: idUser
                 , nmUser: ILike(`%${nmUser? nmUser: ''}%`)
                 , userGrp:{id: idUserGrp}
                 , ...etc
-                 }});
+                 } as FindOptionsWhere<User>});
             if(cntUser > 0) {
                 return {cnt:1, reason: "ok", user};
             }
             return {cnt: 0, reason: "no user found for the id", user: null};
-        } catch {
+        } catch(e){
+            console.log(e);
             return {cnt: 0, reason: "error while searching user", user: null};
         }
     }
@@ -91,19 +92,16 @@ export class UsersService {
      */
     async login({idLogin, password}: LoginInput): Promise<LoginOutput> {
         try {
-            console.log("login service1");
-            let today = new Date().toLocaleDateString('ko').split('.').map(el => Number(el));
-            console.log(today)
-            let user = await this.user.findOne({relations:['passwords']
-                                              , where: {idLogin
-                                                     , passwords:{password
-                                                                , ddExpire: MoreThan(`${today[0]}${today[1]<10?'0'+today[1]:today[1]}${today[2]<10?'0'+today[2]:today[2]}`
-                                                                  )}}})
-            console.log("login service2");
-            if(user) {
-                return {cnt: 0, reason: "ok", user};
-            } else {
+            // console.log(env.TOKEN_KEY);
+            let user = await this.user.findOne({where: {idLogin}})
+            if(!user) {
                 return {cnt: 0, reason: "wrong information"};
+            }
+            let goodPassword = await user.checkPassword(password);
+            if(goodPassword) {
+                return {cnt: 0, reason: "ok", token: '123'};
+            } else {
+                return {cnt: 0, reason: "wrong  information"};
             }
         } catch(e) {
             console.log(e)

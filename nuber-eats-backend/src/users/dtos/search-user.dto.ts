@@ -4,7 +4,7 @@ import { User } from "../entities/user.entity";
 
 
 @InputType()
-export class SearchUserInput extends PartialType(OmitType(User, ['id', 'passwords'], InputType), InputType){
+export class SearchUserInput extends PartialType(OmitType(User, ['id', 'password'] as const, InputType), InputType){
     @Field(type => Int, {nullable: true})
     idUserGrp?: number;
 

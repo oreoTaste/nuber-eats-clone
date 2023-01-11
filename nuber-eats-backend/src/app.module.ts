@@ -10,9 +10,14 @@ import { OCR } from './util/OCR';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env'],
+    }),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: "localhost",
@@ -25,7 +30,7 @@ import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
       entities: ['dist/**/*.entity{.ts,.js}'],
       subscribers: [],
       migrations: [],
-      namingStrategy: new MySnakeNamingStrategy(), 
+      namingStrategy: new MySnakeNamingStrategy(),
   }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

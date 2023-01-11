@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, ILike, Like, Repository } from 'typeorm';
+import { Between, ILike, Like, Repository, FindOptionsWhere } from 'typeorm';
 import { HealthMark, HealthMarkGrp, HealthRecord } from './entities/health.entity';
 import { CreateHealthMarkInput, CreateHealthMarkOutput } from './dtos/create-health-mark.dto';
 import { CreateHealthMarkGrpInput, CreateHealthMarkGrpOutput } from './dtos/create-health-mark-grp.dto.';
@@ -41,9 +41,9 @@ export class HealthService {
         try {
             let rslt;
             if(!nmGrpMark || nmGrpMark.length == 0) {
-                rslt = await this.healthMarkGrp.find({where: {...etc}});
+                rslt = await this.healthMarkGrp.find({where: {...etc} as FindOptionsWhere<HealthMarkGrp>});
             } else {
-                rslt = await this.healthMarkGrp.find({where: {...etc, nmGrpMark: ILike(`%${nmGrpMark? nmGrpMark: ''}%`)}});
+                rslt = await this.healthMarkGrp.find({where: {...etc, nmGrpMark: ILike(`%${nmGrpMark? nmGrpMark: ''}%`)} as FindOptionsWhere<HealthMarkGrp>});
             }
             if(rslt.length) {
                 return {cnt: rslt.length, reason: 'ok', healthMarkGrp: rslt};
@@ -98,9 +98,9 @@ export class HealthService {
             // }
             let healthMark;
             if(!nmMark || nmMark.length == 0) {
-                healthMark = await this.healthMark.find({where: {...etc}});
+                healthMark = await this.healthMark.find({where: {...etc} as FindOptionsWhere<HealthMark>});
             } else {
-                healthMark = await this.healthMark.find({where: {...etc, nmMark: ILike(`%${nmMark? nmMark: ''}%`)}});
+                healthMark = await this.healthMark.find({where: {...etc, nmMark: ILike(`%${nmMark? nmMark: ''}%`)} as FindOptionsWhere<HealthMark>});
             }
             if(healthMark.length) {
                 return {cnt: healthMark.length, reason: 'ok', healthMark};

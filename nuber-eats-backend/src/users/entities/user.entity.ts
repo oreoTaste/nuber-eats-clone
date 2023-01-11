@@ -73,46 +73,32 @@ export class User extends CoreEntity implements CoreInterface{
         @Length(8,8)
         ddBirth: string;
 
-        @OneToMany(type=>UserPassword
-                , (password)=>password.user
-                , {eager: false, createForeignKeyConstraints: false, nullable: true})
-        @Field(type => [UserPassword], {nullable: true})
-        passwords: UserPassword[];
-}
-
-@ObjectType()
-@InputType("UserPasswordInput",{isAbstract: true})
-@Entity()
-export class UserPassword extends CoreEntity implements CoreInterface{
-        @PrimaryGeneratedColumn({name: "ID_USER_PASSWORD", primaryKeyConstraintName: "PK_USER_PASSWORD"})
-        @Field(type=> Int, {nullable: false})
-        @IsNumber()    
-        id: number;
-
-        @ManyToOne(type=>User
-                , (user)=> user.passwords
-                , {eager: false, createForeignKeyConstraints: false, nullable: true})
-        @Field(type => User, {name: "ID_USER", nullable: true})
-        user?: User;
-
         @Column({comment: "비밀번호"})
         @Field({description: "비밀번호"})
         @IsString()
         password: string;
 
-        @Column({length:8, default: "99991231", comment: "유효일자"})
-        @Field({description: "유효일자"})
-        @IsString()
-        @Length(8,8)
-        ddExpire: string;
+        @BeforeInsert()
+        async encryptPassword(): Promise<void> {
+                try {
+                        this.password = await bcrypt.hash(this.password, 10);
+                } catch(e) {
+                        console.log(e);
+                        throw new InternalServerErrorException();
+                }
+        }
 
-        // @BeforeInsert()
-        // async encryptPassword(): Promise<void> {
-        //         try {
-        //                 this.password = await bcrypt.hash(this.password, 10);
-        //         } catch(e) {
-        //                 console.log(e);
-        //                 throw new InternalServerErrorException();
-        //         }
-        // }
+        async checkPassword(password: string):Promise<boolean> {
+                try {
+                        let rslt = await bcrypt.compare(password, this.password);
+                        if(rslt) {
+                                return true;
+                        }
+                        return false;
+                } catch(e) {
+                        console.log(e);
+                        throw new Error('wrong password');
+                }
+        }
+
 }
