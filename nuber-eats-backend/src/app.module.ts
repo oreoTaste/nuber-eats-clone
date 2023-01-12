@@ -11,20 +11,32 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
 import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
 
+console.log('process.env.TOKEN_KEY:'+process.env.TOKEN_KEY);
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'],
+      envFilePath: process.env.NODE_ENV === "dev" ? '.dev.env' : '.env',
+      ignoreEnvFile: process.env.NODE_ENV === "prod",
+      validationSchema: Joi.object({
+        NODE_ENV:Joi.string().valid('dev','prod').required(),
+        TOKEN_KEY: Joi.string().required(),
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.string().required(),
+        DB_USERNAME: Joi.string().required(),
+        DB_PASSWORD: Joi.string().required(),
+        DB_DATABASE: Joi.string().required(),
+      })
     }),
     TypeOrmModule.forRoot({
-      type: "postgres",
-      host: "localhost",
-      port: 5433,
-      username: "oreoTaste",
-      password: "1234",
-      database: "nuber-eats",
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       synchronize: true,
       logging: true,
       entities: ['dist/**/*.entity{.ts,.js}'],

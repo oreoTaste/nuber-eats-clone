@@ -6,12 +6,14 @@ import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-uses.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
-import { env } from 'process';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
     constructor(@InjectRepository(User) private readonly user: Repository<User>,
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>,
+                private readonly configService: ConfigService
                ){}
 
     /** 
@@ -99,7 +101,8 @@ export class UsersService {
             }
             let goodPassword = await user.checkPassword(password);
             if(goodPassword) {
-                return {cnt: 0, reason: "ok", token: '123'};
+                let token = jwt.sign({'idUser': user.id}, this.configService.get("TOKEN_KEY"), {algorithm: "HS512"});
+                return {cnt: 0, reason: "ok", token};
             } else {
                 return {cnt: 0, reason: "wrong  information"};
             }
