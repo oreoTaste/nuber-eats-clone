@@ -3,7 +3,10 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { User, UserGrp } from "../entities/user.entity";
 
 @InputType()
-export class SearchGrpUsersInput extends PartialType(OmitType(UserGrp, ['users'], InputType), InputType){}
+export class SearchGrpUsersInput extends PartialType(OmitType(UserGrp, ['users'], InputType), InputType){
+    @Field(type=> String)
+    token: string;
+}
 
 @ObjectType()
 export class SearchGrpUsersOutput extends CommonOutput{

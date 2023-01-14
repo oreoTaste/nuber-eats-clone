@@ -10,6 +10,9 @@ export class SearchUserInput extends PartialType(OmitType(User, ['id', 'password
 
     @Field(type => Int, {nullable: true})
     idUser?: number;
+    
+    @Field(type=> String)
+    token: string;
 }
 
 @ObjectType()

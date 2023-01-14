@@ -11,9 +11,9 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from './jwt/jwt.module';
 import * as Joi from 'joi';
 
-console.log('process.env.TOKEN_KEY:'+process.env.TOKEN_KEY);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -51,7 +51,10 @@ console.log('process.env.TOKEN_KEY:'+process.env.TOKEN_KEY);
       playground: true}),
 
     HealthModule,
-    UsersModule
+    UsersModule,
+    JwtModule.forRoot({
+      isGlobal: true,
+    })
   ],
   controllers: [AppController],
   providers: [AppService, OCR],

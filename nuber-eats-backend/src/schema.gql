@@ -159,54 +159,63 @@ type HealthRecord {
 type CreateHealthMarkOutput {
   cnt: Float
   reason: String
+  token: String
   idHealthMark: Int
 }
 
 type CreateHealthMarkGrpOutput {
   cnt: Float
   reason: String
+  token: String
   idHealthMarkGrp: Int
 }
 
 type FindHealthRecordOutput {
   cnt: Float
   reason: String
+  token: String
   healthRecord: [HealthRecord!]
 }
 
 type FindHealthMarkGrpOutput {
   cnt: Float
   reason: String
+  token: String
   healthMarkGrp: [HealthMarkGrp!]
 }
 
 type FindHealthMarkOutput {
   cnt: Float
   reason: String
+  token: String
   healthMark: [HealthMark!]
 }
 
 type CreateHealthRecordOutput {
   cnt: Float
   reason: String
+  token: String
   idHealthRecord: Int
 }
 
 type SearchUserOutput {
   cnt: Float
   reason: String
+  token: String
   user: [User!]
 }
 
 type SearchGrpUsersOutput {
   cnt: Float
   reason: String
+  token: String
   users: [User!]
 }
 
 type CreateAccountOutput {
   cnt: Float
   reason: String
+  token: String
   idUser: Int
 }
 
@@ -339,6 +348,7 @@ input SearchGrpUsersInput {
 
   """사용자 그룹타입"""
   tpUserGrp: String
+  token: String!
 }
 
 input SearchUserInput {
@@ -369,6 +379,7 @@ input SearchUserInput {
   ddBirth: String
   idUserGrp: Int
   idUser: Int
+  token: String!
 }
 
 input UserGrpInput {
@@ -604,4 +615,5 @@ input CreateAccountInput {
 
   """비밀번호"""
   password: String!
+  token: String!
 }
