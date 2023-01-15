@@ -8,6 +8,9 @@ import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-use
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
+import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.dto';
+import { CommonOutput } from 'src/common/dtos/core.dto';
+import { ExpireProfileInput } from './dtos/expire-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -75,21 +78,21 @@ export class UsersService {
     /** 
      * @description: 사용자 조회 (사용자 검색)
     */
-    async searchUser({idUserGrp, idUser, nmUser, token, ...etc}: SearchUserInput): Promise<SearchUserOutput>{
+    async searchUser({idUserGrp, idUser, nmUser, ...etc}: SearchUserInput): Promise<SearchUserOutput>{
         try {
-            token = this.jwtService.verifyAndReissue(token);
+            // token = this.jwtService.verifyAndReissue(token);
             let [user, cntUser] = await this.user.findAndCount({relations: ['userGrp'], where: {id: idUser
                 , nmUser: ILike(`%${nmUser? nmUser: ''}%`)
                 , userGrp:{id: idUserGrp}
                 , ...etc
                  } as FindOptionsWhere<User>});
             if(cntUser > 0) {
-                return {cnt:1, reason: "ok", user, token};
+                return {cnt:1, reason: "ok", user};
             }
-            return {cnt: 0, reason: "no user found for the id", user: null, token};
+            return {cnt: 0, reason: "no user found for the id", user: null};
         } catch(e){
             console.log(`>>>>> [UsersService][searchUser] catch Error(e): ${e}`);
-            return {cnt: 0, reason: "error while searching user", user: null, token};
+            return {cnt: 0, reason: "error while searching user", user: null};
         }
     }
 
@@ -100,17 +103,73 @@ export class UsersService {
         try {
             let user = await this.user.findOne({where: {idLogin}})
             if(!user) {
-                return {cnt: 0, reason: "wrong information"};
+                return {cnt: 0, reason: "wrong information1"};
+            }
+            let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
+                                    .replace(/\./g,'')
+                                    .split(' ')
+                                    .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+            if(user.ddExpire <= now) {
+                return {cnt: 0, reason: 'the account is expired'};
             }
             let goodPassword = await user.checkPassword(password);
             if(goodPassword) {
                 return {cnt: 0, reason: "ok", token: this.jwtService.sign(user.id)};
             } else {
-                return {cnt: 0, reason: "wrong  information"};
+                return {cnt: 0, reason: "wrong  information2"};
             }
         } catch(e) {
-            console.log(`>>>>> [UsersService][login] catch Error(e): ${e}`)
+            console.log(`>>>>> [UsersService][login] idLogin: ${idLogin}, password: ${password}, catch Error(e): ${e}`)
             return {cnt: 0, reason: "error while login in"};
+        }
+    }
+
+    /**
+     *  @description: 아이디를 통한 사용자 확인
+     */
+    async findById(id: number): Promise<User> {
+        return this.user.findOne({where: {id} });
+    }
+
+    /**
+     * @description: 자기 프로필 수정
+     */
+    async updateProfile(idUser: number, input: UpdateProfileInput): Promise<UpdateProfileOutput> {
+        try {
+            let user = await this.findById(idUser);
+            let rslt = await this.user.save(Object.assign(user, input));
+            if(rslt) {
+                return {cnt: 1, reason: 'ok'};
+            }
+            throw Error();
+        } catch(e) {
+            return {cnt: 0, reason: 'error while updating profile'};
+        }
+    }
+
+    async expireProfile(idUser: number, {idLogin}: ExpireProfileInput): Promise<CommonOutput> {
+        try {
+            let user = await this.findById(idUser);
+            if(user.idLogin !== idLogin) {
+                return {cnt: 0, reason: `cannot expire other user`};
+            }
+            let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
+                                     .replace(/\./g,'')
+                                     .split(' ')
+                                     .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+            if(user.ddExpire <= now) {
+                return {cnt: 0, reason: `already expired`};
+            }
+
+            user['ddExpire'] = now;
+            let rslt = await this.user.save(user);
+            if(rslt) {
+                return {cnt: 1, reason: 'ok'};
+            }
+            return {cnt: 0, reason: `couldn't expire the user`};
+        } catch(e) {
+            console.log(`>>>>> [UsersService][expireUser] idUser: ${idUser}, catch Error(e): ${e}`)
+            return {cnt: 0, reason: `error while expiring the user: ${idUser}`};
         }
     }
 }

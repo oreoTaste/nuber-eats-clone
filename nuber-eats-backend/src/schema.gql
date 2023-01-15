@@ -62,6 +62,9 @@ type User {
 
   """비밀번호"""
   password: String!
+
+  """만료일"""
+  ddExpire: String
 }
 
 type HealthMarkGrp {
@@ -225,6 +228,18 @@ type LoginOutput {
   token: String
 }
 
+type UpdateProfileOutput {
+  cnt: Float
+  reason: String
+  token: String
+}
+
+type ExpireProfileOutput {
+  cnt: Float
+  reason: String
+  token: String
+}
+
 type Query {
   findHealthMarkGrp(input: FindHealthMarkGrpInput!): FindHealthMarkGrpOutput!
   findHealthMark(input: FindHealthMarkInput!): FindHealthMarkOutput!
@@ -232,6 +247,7 @@ type Query {
   searchGrpUsers(input: SearchGrpUsersInput!): SearchGrpUsersOutput!
   searchUser(input: SearchUserInput!): SearchUserOutput!
   login(input: LoginInput!): LoginOutput!
+  me: User!
 }
 
 input FindHealthMarkGrpInput {
@@ -377,9 +393,11 @@ input SearchUserInput {
 
   """생년월일"""
   ddBirth: String
+
+  """만료일"""
+  ddExpire: String
   idUserGrp: Int
   idUser: Int
-  token: String!
 }
 
 input UserGrpInput {
@@ -437,6 +455,9 @@ input UserInput {
 
   """비밀번호"""
   password: String!
+
+  """만료일"""
+  ddExpire: String
 }
 
 input HealthRecordInput {
@@ -483,6 +504,8 @@ type Mutation {
   createHealthMark(input: CreateHealthMarkInput!): CreateHealthMarkOutput!
   createHealthRecord(input: CreateHealthRecordInput!): CreateHealthRecordOutput!
   createAccount(input: CreateAccountInput!): CreateAccountOutput!
+  updateProfile(input: UpdateProfileInput!): UpdateProfileOutput!
+  expireProfile(input: ExpireProfileInput!): ExpireProfileOutput!
 }
 
 input CreateHealthMarkGrpInput {
@@ -600,6 +623,9 @@ input CreateAccountInput {
   """생년월일"""
   ddBirth: String
 
+  """만료일"""
+  ddExpire: String
+
   """사용자 그룹명"""
   nmUserGrp: String
 
@@ -616,4 +642,27 @@ input CreateAccountInput {
   """비밀번호"""
   password: String!
   token: String!
+}
+
+input UpdateProfileInput {
+  """사용자ID"""
+  idLogin: String
+  userGrp: UserGrpInput
+
+  """사용자명"""
+  nmUser: String
+
+  """생년월일"""
+  ddBirth: String
+
+  """비밀번호"""
+  password: String
+
+  """만료일"""
+  ddExpire: String
+}
+
+input ExpireProfileInput {
+  """사용자ID"""
+  idLogin: String!
 }

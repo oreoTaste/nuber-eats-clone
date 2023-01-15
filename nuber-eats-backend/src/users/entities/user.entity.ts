@@ -3,7 +3,7 @@ import { IsNumber, IsOptional, IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { CoreInterface } from "src/common/entities/core.interface";
 import { HealthRecord } from "src/health/entities/health.entity";
-import { BeforeInsert, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from "@nestjs/common";
 
@@ -78,7 +78,15 @@ export class User extends CoreEntity implements CoreInterface{
         @IsString()
         password: string;
 
+        @Column({length:8, nullable: true, comment: "만료일"})
+        @Field({nullable: true, description: "만료일"})
+        @IsString()
+        @IsOptional()
+        @Length(8,8)
+        ddExpire: string;
+
         @BeforeInsert()
+        @BeforeUpdate()
         async encryptPassword(): Promise<void> {
                 try {
                         this.password = await bcrypt.hash(this.password, 10);

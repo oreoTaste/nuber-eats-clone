@@ -13,6 +13,11 @@ import { MySnakeNamingStrategy } from './util/my-snake-naming-strategy';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from './jwt/jwt.module';
 import * as Joi from 'joi';
+import { MiddlewareConsumer } from '@nestjs/common/interfaces/middleware';
+import { NestModule } from '@nestjs/common/interfaces/modules';
+import { RequestMethod } from '@nestjs/common/enums';
+import { JwtMiddleware } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -48,15 +53,24 @@ import * as Joi from 'joi';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       // autoSchemaFile: true,
-      playground: true}),
-
+      playground: true,
+      context: ({req})=>{return {user: req.user}}
+    }),
     HealthModule,
     UsersModule,
     JwtModule.forRoot({
       isGlobal: true,
-    })
+    }),
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService, OCR],
 })
-export class AppModule {}
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JwtMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
+  }  
+}

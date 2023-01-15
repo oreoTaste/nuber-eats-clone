@@ -7,7 +7,4 @@ import { User, UserGrp } from "../entities/user.entity";
 export class LoginInput extends PickType(User, ['idLogin', 'password'] as const, InputType){}
 
 @ObjectType()
-export class LoginOutput extends CommonOutput {
-    @Field({nullable: true})
-    token?: string;
-}
+export class LoginOutput extends CommonOutput {}

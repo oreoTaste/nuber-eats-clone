@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class JwtService {
     constructor(private readonly configService: ConfigService){}
+
+    /**
+     * @description: 토큰으로부터 사용자ID분리
+     */
+    decodeUser(token: string): string {
+        return jwt.decode(token)['idUser'];
+    }
 
     /**
      * @description: 로그인 검증시 토큰값 생성
@@ -27,7 +35,7 @@ export class JwtService {
      * @description: 유효성 확인 및 만료된 경우 재발급
      * @returns: when no error occurs, newToken will be returned (else error will be thrown)
      */
-    verifyAndReissue(token: string) {
+    verifyAndReissue(token: string): string {
         console.log(`>>>>> [JwtService][verifyAndReissue] now: ${new Date().toLocaleDateString().replace(/ /g, '')} ${new Date().toLocaleTimeString()}`);
         try {
             this.verify(token);
