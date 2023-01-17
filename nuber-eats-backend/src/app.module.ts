@@ -18,6 +18,7 @@ import { NestModule } from '@nestjs/common/interfaces/modules';
 import { RequestMethod } from '@nestjs/common/enums';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -61,7 +62,8 @@ import { AuthModule } from './auth/auth.module';
     JwtModule.forRoot({
       isGlobal: true,
     }),
-    AuthModule
+    AuthModule,
+    LoggerModule
   ],
   controllers: [AppController],
   providers: [AppService, OCR],

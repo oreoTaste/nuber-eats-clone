@@ -1,7 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AppDataSource } from './data-source';
 
 
 // AppDataSource.initialize()
@@ -9,9 +8,10 @@ import { AppDataSource } from './data-source';
 //               // here you can start to work with your database
 //              })
 //              .catch((error) => console.log(error));
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['debug', 'log', 'error', 'warn', 'verbose']
+  });
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(3000);
 }

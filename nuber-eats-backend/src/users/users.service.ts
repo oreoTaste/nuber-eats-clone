@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserGrp } from './entities/user.entity';
 import { ILike, Repository, MoreThan, FindOptionsWhere } from 'typeorm';
@@ -11,14 +11,19 @@ import { JwtService } from 'src/jwt/jwt.service';
 import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.dto';
 import { CommonOutput } from 'src/common/dtos/core.dto';
 import { ExpireProfileInput } from './dtos/expire-profile.dto';
+import { Logger } from 'src/logger/logger.service';
 
 @Injectable()
 export class UsersService {
+    // private readonly logger = new Logger(UsersService.name, {logLevels:['debug']});
     constructor(@InjectRepository(User) private readonly user: Repository<User>,
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>,
                 /*@Inject(forwardRef(() => ConfigService)) */ private readonly configService: ConfigService,
-                private readonly jwtService: JwtService
-               ){}
+                private readonly jwtService: JwtService,
+                private readonly logger: Logger
+                ){
+                    logger.setContext(UsersService.name);
+               }
 
     /** 
      * @description: 그룹내 사용자 조회 (사용자 그룹 검색 -> 사용자 조회)
@@ -36,7 +41,7 @@ export class UsersService {
                 return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok', token};
             }    
         } catch(e){
-            console.log(`>>>>> [UsersService][searchGrpUsers] catch Error(e): ${e}`);
+            this.logger.log(`catch Error(e): ${e}`, 'searchGrpUsers');
             return {cnt: 0, reason: `error while searching user group`, token};
         }
     }
@@ -57,7 +62,7 @@ export class UsersService {
                 return {cnt:0, reason: 'found multiple user groups while creating account'};
             }
         } catch(e){
-            console.log(`>>>>> [UsersService][createAccount] catch Error(e): ${e}`);
+            this.logger.log(`catch Error(e): ${e}`, 'createAccount');
             return {cnt:0, reason: 'error searching user groups'};
         }
 
@@ -70,7 +75,7 @@ export class UsersService {
                 return {cnt: 0, reason: 'found user already', idUser: null};
             }
         } catch(e){
-            console.log(`>>>>> [UsersService][createAccount] catch Error(e): ${e}`);
+            this.logger.log(`catch Error(e): ${e}`, 'createAccount');
             return {cnt: 0, reason: 'error while creating user account', idUser: null};
         }
     }
@@ -91,7 +96,7 @@ export class UsersService {
             }
             return {cnt: 0, reason: "no user found for the id", user: null};
         } catch(e){
-            console.log(`>>>>> [UsersService][searchUser] catch Error(e): ${e}`);
+            this.logger.log(`catch Error(e): ${e}`, 'searchUser');
             return {cnt: 0, reason: "error while searching user", user: null};
         }
     }
@@ -119,7 +124,7 @@ export class UsersService {
                 return {cnt: 0, reason: "wrong  information2"};
             }
         } catch(e) {
-            console.log(`>>>>> [UsersService][login] idLogin: ${idLogin}, password: ${password}, catch Error(e): ${e}`)
+            this.logger.log(`idLogin: ${idLogin}, password: ${password}, catch Error(e): ${e}`, 'login');
             return {cnt: 0, reason: "error while login in"};
         }
     }
@@ -168,7 +173,7 @@ export class UsersService {
             }
             return {cnt: 0, reason: `couldn't expire the user`};
         } catch(e) {
-            console.log(`>>>>> [UsersService][expireUser] idUser: ${idUser}, catch Error(e): ${e}`)
+            this.logger.log(`idUser: ${idUser}, catch Error(e): ${e}, `, 'expireProfile')
             return {cnt: 0, reason: `error while expiring the user: ${idUser}`};
         }
     }
