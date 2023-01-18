@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserGrp } from './entities/user.entity';
+import { EmailVerification, User, UserGrp } from './entities/user.entity';
 import { ILike, Repository, MoreThan, FindOptionsWhere } from 'typeorm';
 import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
@@ -18,6 +18,7 @@ export class UsersService {
     // private readonly logger = new Logger(UsersService.name, {logLevels:['debug']});
     constructor(@InjectRepository(User) private readonly user: Repository<User>,
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>,
+                @InjectRepository(EmailVerification) private readonly emailVerification: Repository<EmailVerification>,
                 /*@Inject(forwardRef(() => ConfigService)) */ private readonly configService: ConfigService,
                 private readonly jwtService: JwtService,
                 private readonly logger: Logger
@@ -28,31 +29,29 @@ export class UsersService {
     /** 
      * @description: 그룹내 사용자 조회 (사용자 그룹 검색 -> 사용자 조회)
     */    
-    async searchGrpUsers({nmUserGrp, token, ...etc}: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
+    async searchGrpUsers({nmUserGrp, ...etc}: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
         try {
-            token = this.jwtService.verifyAndReissue(token);
             let [userGrp, cnt] = await this.userGrp.findAndCount({relations: ['users'], where: {nmUserGrp: ILike(`%${nmUserGrp}%`), ...etc}});
             if(cnt == 0) {
-                return {cnt, reason: `couldn't found user group`, token};
+                return {cnt, reason: `couldn't found user group`};
             } else if(cnt > 1) {
                 let users = userGrp.map(el => el.users).flat();
-                return {users, cnt: users.length, reason: 'ok', token};
+                return {users, cnt: users.length, reason: 'ok'};
             } else {
-                return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok', token};
+                return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok'};
             }    
         } catch(e){
             this.logger.log(`catch Error(e): ${e}`, 'searchGrpUsers');
-            return {cnt: 0, reason: `error while searching user group`, token};
+            return {cnt: 0, reason: `error while searching user group`};
         }
     }
 
     /** 
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
-    async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, token, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
+    async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ddExpire, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
         let accountUserGrp: UserGrp;
         try {
-            token = this.jwtService.verifyAndReissue(token);
             let [userGrp, cnt] = await this.userGrp.findAndCount({where: {nmUserGrp, tpUserGrp, desc: descUserGrp}});
             if(cnt == 0) {
                 accountUserGrp = await this.userGrp.save({nmUserGrp, tpUserGrp, descUserGrp, ...etc})
@@ -69,7 +68,21 @@ export class UsersService {
         try {
             let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
             if(!existingUser) {
-                let account = await this.user.save(this.user.create({nmUser, ddBirth, desc:descUser, ...etc, userGrp:accountUserGrp, password}));
+                let monthLater = new Date(new Date().setMonth(new Date().getMonth()+1))
+                                .toLocaleDateString('ko', {dateStyle: 'medium'})
+                                .replace(/\./g,'')
+                                .split(' ')
+                                .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+                let account = await this.user.save(
+                                        this.user.create({ddExpire:`${ddExpire? ddExpire: monthLater}`
+                                                        , nmUser
+                                                        , ddBirth
+                                                        , desc:descUser
+                                                        , ...etc
+                                                        , userGrp:accountUserGrp
+                                                        , password}));
+                let verification = this.emailVerification.create({user: account, ...etc});
+                let rslt = await this.emailVerification.save(verification);
                 return {cnt: 1, reason: 'ok', idUser: account.id};
             } else {
                 return {cnt: 0, reason: 'found user already', idUser: null};
@@ -104,9 +117,9 @@ export class UsersService {
     /**
      * @description: 로그인
      */
-    async login({idLogin, password}: LoginInput): Promise<LoginOutput> {
+    async login({email, password}: LoginInput): Promise<LoginOutput> {
         try {
-            let user = await this.user.findOne({where: {idLogin}})
+            let user = await this.user.findOne({where: {email}})
             if(!user) {
                 return {cnt: 0, reason: "wrong information1"};
             }
@@ -124,7 +137,7 @@ export class UsersService {
                 return {cnt: 0, reason: "wrong  information2"};
             }
         } catch(e) {
-            this.logger.log(`idLogin: ${idLogin}, password: ${password}, catch Error(e): ${e}`, 'login');
+            this.logger.log(`email: ${email}, password: ${password}, catch Error(e): ${e}`, 'login');
             return {cnt: 0, reason: "error while login in"};
         }
     }
@@ -152,10 +165,10 @@ export class UsersService {
         }
     }
 
-    async expireProfile(idUser: number, {idLogin}: ExpireProfileInput): Promise<CommonOutput> {
+    async expireProfile(idUser: number, {email}: ExpireProfileInput): Promise<CommonOutput> {
         try {
             let user = await this.findById(idUser);
-            if(user.idLogin !== idLogin) {
+            if(user.email !== email) {
                 return {cnt: 0, reason: `cannot expire other user`};
             }
             let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})

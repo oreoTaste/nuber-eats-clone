@@ -4,7 +4,7 @@ import { Entity } from "typeorm/decorator/entity/Entity";
 import { User, UserGrp } from "../entities/user.entity";
 
 @InputType()
-export class LoginInput extends PickType(User, ['idLogin', 'password'] as const, InputType){}
+export class LoginInput extends PickType(User, ['email', 'password'] as const, InputType){}
 
 @ObjectType()
 export class LoginOutput extends CommonOutput {}

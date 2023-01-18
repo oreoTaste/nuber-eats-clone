@@ -49,8 +49,11 @@ type User {
   desc: String
   id: Int!
 
-  """사용자ID"""
-  idLogin: String!
+  """사용자ID(이메일주소)"""
+  email: String!
+
+  """이메일 검증일시"""
+  dtEmailVerified: DateTime
   userGrp: UserGrp
   healthRecords: [HealthRecord!]
 
@@ -364,7 +367,6 @@ input SearchGrpUsersInput {
 
   """사용자 그룹타입"""
   tpUserGrp: String
-  token: String!
 }
 
 input SearchUserInput {
@@ -383,8 +385,11 @@ input SearchUserInput {
   """상세설명"""
   desc: String
 
-  """사용자ID"""
-  idLogin: String
+  """사용자ID(이메일주소)"""
+  email: String
+
+  """이메일 검증일시"""
+  dtEmailVerified: DateTime
   userGrp: UserGrpInput
   healthRecords: [HealthRecordInput!]
 
@@ -442,8 +447,11 @@ input UserInput {
   desc: String
   id: Int!
 
-  """사용자ID"""
-  idLogin: String!
+  """사용자ID(이메일주소)"""
+  email: String!
+
+  """이메일 검증일시"""
+  dtEmailVerified: DateTime
   userGrp: UserGrpInput
   healthRecords: [HealthRecordInput!]
 
@@ -492,8 +500,8 @@ input HealthRecordInput {
 }
 
 input LoginInput {
-  """사용자ID"""
-  idLogin: String!
+  """사용자ID(이메일주소)"""
+  email: String!
 
   """비밀번호"""
   password: String!
@@ -613,8 +621,11 @@ input CreateAccountInput {
   """수정자"""
   idUpdate: Int
 
-  """사용자ID"""
-  idLogin: String!
+  """사용자ID(이메일주소)"""
+  email: String!
+
+  """이메일 검증일시"""
+  dtEmailVerified: DateTime
   healthRecords: [HealthRecordInput!]
 
   """사용자명"""
@@ -641,12 +652,11 @@ input CreateAccountInput {
 
   """비밀번호"""
   password: String!
-  token: String!
 }
 
 input UpdateProfileInput {
-  """사용자ID"""
-  idLogin: String
+  """사용자ID(이메일주소)"""
+  email: String
   userGrp: UserGrpInput
 
   """사용자명"""
@@ -663,6 +673,6 @@ input UpdateProfileInput {
 }
 
 input ExpireProfileInput {
-  """사용자ID"""
-  idLogin: String!
+  """사용자ID(이메일주소)"""
+  email: String!
 }

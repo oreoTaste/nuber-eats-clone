@@ -22,9 +22,6 @@ export class CreateAccountInput extends IntersectionType(OmitType(User, ['id', '
     @Field({description: "비밀번호"})
     @IsString()
     password: string;
-
-    @Field(type=> String)
-    token: string;
 }    
 
 @ObjectType()

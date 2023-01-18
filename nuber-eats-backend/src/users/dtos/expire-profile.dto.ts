@@ -3,7 +3,7 @@ import { CommonOutput } from "src/common/dtos/core.dto";
 import { User } from "../entities/user.entity";
 
 @InputType()
-export class ExpireProfileInput extends PickType(User, ['idLogin'], InputType){}
+export class ExpireProfileInput extends PickType(User, ['email'], InputType){}
 
 @ObjectType()
 export class ExpireProfileOutput extends CommonOutput {}

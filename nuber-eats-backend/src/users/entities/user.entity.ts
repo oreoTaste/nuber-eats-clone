@@ -1,11 +1,14 @@
 import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
-import { IsNumber, IsOptional, IsString, Length } from "class-validator";
+import { IsDate, IsEmail, IsNumber, IsOptional, IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { CoreInterface } from "src/common/entities/core.interface";
 import { HealthRecord } from "src/health/entities/health.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from "@nestjs/common";
+import { OneToOne } from "typeorm/decorator/relations/OneToOne";
+import { JoinColumn } from "typeorm/decorator/relations/JoinColumn";
+import { Relation } from "typeorm/common/RelationType";
 
 @ObjectType()
 @InputType("UserGrpInput", {isAbstract: true})
@@ -34,6 +37,7 @@ export class UserGrp extends CoreEntity implements CoreInterface{
         users: User[];  
 }
 
+
 @ObjectType()
 @InputType("UserInput",{isAbstract: true})
 @Entity()
@@ -43,10 +47,19 @@ export class User extends CoreEntity implements CoreInterface{
         @IsNumber()
         id: number;
 
-        @Column({comment: "사용자ID"})
-        @Field({description: "사용자ID"})
-        @IsString()
-        idLogin: string;
+        @Column({comment: "사용자ID(이메일주소)"})
+        @Field({description: "사용자ID(이메일주소)"})
+        @IsEmail()
+        email: string;
+
+        @OneToMany(type=>EmailVerification, (veri)=>{veri.user}, {eager: false, createForeignKeyConstraints: false})
+        emailVerification: EmailVerification[];
+
+        @Column({comment: "이메일 검증일시", default: null})
+        @Field({description: "이메일 검증일시", nullable: true})
+        @IsDate()
+        @IsOptional()
+        dtEmailVerified: Date;
 
         @ManyToOne(type=>UserGrp
                 , (userGrp) => userGrp.users
@@ -109,4 +122,35 @@ export class User extends CoreEntity implements CoreInterface{
                 }
         }
 
+}
+
+
+
+@ObjectType()
+@InputType("VerificationInput",{isAbstract: true})
+@Entity()
+export class EmailVerification extends CoreEntity implements CoreInterface{
+
+        @PrimaryGeneratedColumn({name: "ID_EMAIL_VERIFICATION", primaryKeyConstraintName: "PK_EMAIL_VERIFICATION"})
+        @Field(type=> Int, {nullable: false})
+        @IsNumber()
+        id: number;
+
+        @Column({comment: "이메일검증코드"})
+        @Field({nullable: true, description: "이메일검증코드"})
+        code: string;
+
+        @ManyToOne(type=>User, (user)=>{user.emailVerification}, {eager: false, createForeignKeyConstraints: true})
+        @Field({description: "사용자ID"})
+        @JoinColumn({})
+        user: User;
+
+        @BeforeInsert()
+        createRandomCode():void {
+                this.code = Math.random().toString(34).slice(2);
+        }
+
+        toString(): string {
+                return `id: ${this.id}, code: ${this.code}, user: ${this.user.nmUser}, idInsert: ${this.idInsert}, dtInsert: ${this.dtInsert}, idUpdate: ${this.idUpdate}, dtUpdate: ${this.dtUpdate}`;
+        }
 }
