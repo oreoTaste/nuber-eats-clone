@@ -7,7 +7,4 @@ export class CommonOutput {
 
     @Field({nullable: true})
     reason: string;
-
-    @Field({nullable: true})
-    token?: string;
 }

@@ -10,6 +10,7 @@ import { UseGuards } from '@nestjs/common'
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.dto';
 import { ExpireProfileInput, ExpireProfileOutput } from './dtos/expire-profile.dto';
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 
 @Resolver(of => User)
 export class UsersResolver {
@@ -65,5 +66,14 @@ export class UsersResolver {
     expireProfile(@AuthUser() authUser: User
                 , @Args('input') input: ExpireProfileInput): Promise<ExpireProfileOutput>{
         return this.service.expireProfile(authUser.id, input);
+    }
+
+    /**
+     * @description: 이메일 검증
+     */
+    @Mutation(type => VerifyEmailOutput)
+    verifyEmail(@AuthUser() authUser: User
+              , @Args('input') input: VerifyEmailInput): Promise<VerifyEmailOutput> {
+        return this.service.verifyEmail(authUser.id, input);
     }
 }

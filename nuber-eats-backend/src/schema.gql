@@ -165,63 +165,54 @@ type HealthRecord {
 type CreateHealthMarkOutput {
   cnt: Float
   reason: String
-  token: String
   idHealthMark: Int
 }
 
 type CreateHealthMarkGrpOutput {
   cnt: Float
   reason: String
-  token: String
   idHealthMarkGrp: Int
 }
 
 type FindHealthRecordOutput {
   cnt: Float
   reason: String
-  token: String
   healthRecord: [HealthRecord!]
 }
 
 type FindHealthMarkGrpOutput {
   cnt: Float
   reason: String
-  token: String
   healthMarkGrp: [HealthMarkGrp!]
 }
 
 type FindHealthMarkOutput {
   cnt: Float
   reason: String
-  token: String
   healthMark: [HealthMark!]
 }
 
 type CreateHealthRecordOutput {
   cnt: Float
   reason: String
-  token: String
   idHealthRecord: Int
 }
 
 type SearchUserOutput {
   cnt: Float
   reason: String
-  token: String
   user: [User!]
 }
 
 type SearchGrpUsersOutput {
   cnt: Float
   reason: String
-  token: String
   users: [User!]
 }
 
 type CreateAccountOutput {
   cnt: Float
   reason: String
-  token: String
   idUser: Int
 }
 
@@ -234,13 +225,16 @@ type LoginOutput {
 type UpdateProfileOutput {
   cnt: Float
   reason: String
-  token: String
 }
 
 type ExpireProfileOutput {
   cnt: Float
   reason: String
-  token: String
+}
+
+type VerifyEmailOutput {
+  cnt: Float
+  reason: String
 }
 
 type Query {
@@ -514,6 +508,7 @@ type Mutation {
   createAccount(input: CreateAccountInput!): CreateAccountOutput!
   updateProfile(input: UpdateProfileInput!): UpdateProfileOutput!
   expireProfile(input: ExpireProfileInput!): ExpireProfileOutput!
+  verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
 }
 
 input CreateHealthMarkGrpInput {
@@ -675,4 +670,9 @@ input UpdateProfileInput {
 input ExpireProfileInput {
   """사용자ID(이메일주소)"""
   email: String!
+}
+
+input VerifyEmailInput {
+  """이메일검증코드"""
+  code: String
 }

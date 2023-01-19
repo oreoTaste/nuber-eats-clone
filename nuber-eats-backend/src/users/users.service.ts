@@ -12,6 +12,8 @@ import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.d
 import { CommonOutput } from 'src/common/dtos/core.dto';
 import { ExpireProfileInput } from './dtos/expire-profile.dto';
 import { Logger } from 'src/logger/logger.service';
+import { DataSource } from 'typeorm/data-source';
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +23,7 @@ export class UsersService {
                 @InjectRepository(EmailVerification) private readonly emailVerification: Repository<EmailVerification>,
                 /*@Inject(forwardRef(() => ConfigService)) */ private readonly configService: ConfigService,
                 private readonly jwtService: JwtService,
-                private readonly logger: Logger
+                private readonly logger: Logger,
                 ){
                     logger.setContext(UsersService.name);
                }
@@ -41,7 +43,7 @@ export class UsersService {
                 return {users: userGrp[0].users, cnt: userGrp[0].users.length, reason: 'ok'};
             }    
         } catch(e){
-            this.logger.log(`catch Error(e): ${e}`, 'searchGrpUsers');
+            this.logger.error(`catch Error(e): ${e}`, 'searchGrpUsers');
             return {cnt: 0, reason: `error while searching user group`};
         }
     }
@@ -54,14 +56,14 @@ export class UsersService {
         try {
             let [userGrp, cnt] = await this.userGrp.findAndCount({where: {nmUserGrp, tpUserGrp, desc: descUserGrp}});
             if(cnt == 0) {
-                accountUserGrp = await this.userGrp.save({nmUserGrp, tpUserGrp, descUserGrp, ...etc})
+                accountUserGrp = await this.userGrp.save({nmUserGrp, tpUserGrp, descUserGrp, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)})
             } else if(cnt == 1){
                 accountUserGrp = userGrp[0];
             } else {
                 return {cnt:0, reason: 'found multiple user groups while creating account'};
             }
         } catch(e){
-            this.logger.log(`catch Error(e): ${e}`, 'createAccount');
+            this.logger.error(`catch Error(e): ${e}`, 'createAccount');
             return {cnt:0, reason: 'error searching user groups'};
         }
 
@@ -81,18 +83,44 @@ export class UsersService {
                                                         , ...etc
                                                         , userGrp:accountUserGrp
                                                         , password}));
-                let verification = this.emailVerification.create({user: account, ...etc});
+                let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
                 let rslt = await this.emailVerification.save(verification);
                 return {cnt: 1, reason: 'ok', idUser: account.id};
             } else {
                 return {cnt: 0, reason: 'found user already', idUser: null};
             }
         } catch(e){
-            this.logger.log(`catch Error(e): ${e}`, 'createAccount');
+            this.logger.error(`catch Error(e): ${e}`, 'createAccount');
             return {cnt: 0, reason: 'error while creating user account', idUser: null};
         }
     }
     
+    /**
+     * @description: 이메일 검증
+     */
+    async verifyEmail(idUser: number, {code}: VerifyEmailInput): Promise<VerifyEmailOutput> {
+        try {
+            let user = await this.user.findOne({where: {id: idUser}});
+            if(!user) {
+                return {cnt: 0, reason: 'invalid user'};
+            }
+            
+            if(user.dtEmailVerified) {
+                return {cnt: 0, reason: 'already verified'};
+            }
+            let verification = await this.emailVerification.findOne({order: {dtInsert: 'DESC'}, where: {...user.emailVerification}})
+            if(verification.code !== code) {
+                return {cnt: 0, reason: 'wrong code input'};
+            }
+            user.dtEmailVerified = new Date();
+            await this.user.save(user);
+            return {cnt: 1, reason: 'ok'}    
+        } catch(e) {
+            this.logger.error(`catch Error(e): ${e}`, 'verifyEmail');
+            return {cnt: 0, reason: `error while verifying email`};
+        }
+    }
+
     /** 
      * @description: 사용자 조회 (사용자 검색)
     */
@@ -109,7 +137,7 @@ export class UsersService {
             }
             return {cnt: 0, reason: "no user found for the id", user: null};
         } catch(e){
-            this.logger.log(`catch Error(e): ${e}`, 'searchUser');
+            this.logger.error(`catch Error(e): ${e}`, 'searchUser');
             return {cnt: 0, reason: "error while searching user", user: null};
         }
     }
@@ -137,7 +165,7 @@ export class UsersService {
                 return {cnt: 0, reason: "wrong  information2"};
             }
         } catch(e) {
-            this.logger.log(`email: ${email}, password: ${password}, catch Error(e): ${e}`, 'login');
+            this.logger.error(`email: ${email}, password: ${password}, catch Error(e): ${e}`, 'login');
             return {cnt: 0, reason: "error while login in"};
         }
     }
@@ -186,7 +214,7 @@ export class UsersService {
             }
             return {cnt: 0, reason: `couldn't expire the user`};
         } catch(e) {
-            this.logger.log(`idUser: ${idUser}, catch Error(e): ${e}, `, 'expireProfile')
+            this.logger.error(`idUser: ${idUser}, catch Error(e): ${e}, `, 'expireProfile')
             return {cnt: 0, reason: `error while expiring the user: ${idUser}`};
         }
     }
