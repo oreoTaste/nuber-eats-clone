@@ -12,8 +12,8 @@ import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.d
 import { CommonOutput } from 'src/common/dtos/core.dto';
 import { ExpireProfileInput } from './dtos/expire-profile.dto';
 import { Logger } from 'src/logger/logger.service';
-import { DataSource } from 'typeorm/data-source';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
+import { GenerateEmailCodeOutput } from './dtos/generate-email-code.dto';
 
 @Injectable()
 export class UsersService {
@@ -94,26 +94,40 @@ export class UsersService {
             return {cnt: 0, reason: 'error while creating user account', idUser: null};
         }
     }
-    
+
     /**
-     * @description: 이메일 검증
+     * @description: 이메일 코드 검증
      */
-    async verifyEmail(idUser: number, {code}: VerifyEmailInput): Promise<VerifyEmailOutput> {
+    async generateEmailCode(authUser: User): Promise<GenerateEmailCodeOutput> {
         try {
-            let user = await this.user.findOne({where: {id: idUser}});
-            if(!user) {
+            this.logger.warn(authUser);
+            let verification = await this.emailVerification.save(this.emailVerification.create({user: authUser, idUpdate: authUser.id, idInsert: authUser.id}));
+            this.logger.warn(verification);
+            return {cnt: 1, reason: 'ok'};
+        } catch(e) {
+            this.logger.warn(`catch Error(e): ${e}`, 'generateEmailCode');
+            return {cnt: 0, reason: 'error while generating email verification code'};
+        }
+    }
+
+    /**
+     * @description: 이메일 코드 검증
+     */
+    async verifyEmail(authUser: User, {code}: VerifyEmailInput): Promise<VerifyEmailOutput> {
+        try {
+            if(!authUser) {
                 return {cnt: 0, reason: 'invalid user'};
             }
             
-            if(user.dtEmailVerified) {
+            if(authUser.dtEmailVerified) {
                 return {cnt: 0, reason: 'already verified'};
             }
-            let verification = await this.emailVerification.findOne({order: {dtInsert: 'DESC'}, where: {...user.emailVerification}})
+            let verification = await this.emailVerification.findOne({order: {dtInsert: 'DESC'}, where: {...authUser.emailVerification}})
             if(verification.code !== code) {
                 return {cnt: 0, reason: 'wrong code input'};
             }
-            user.dtEmailVerified = new Date();
-            await this.user.save(user);
+            authUser.dtEmailVerified = new Date();
+            await this.user.save(authUser);
             return {cnt: 1, reason: 'ok'}    
         } catch(e) {
             this.logger.error(`catch Error(e): ${e}`, 'verifyEmail');
@@ -180,10 +194,12 @@ export class UsersService {
     /**
      * @description: 자기 프로필 수정
      */
-    async updateProfile(idUser: number, input: UpdateProfileInput): Promise<UpdateProfileOutput> {
+    async updateProfile(authUser: User, input: UpdateProfileInput): Promise<UpdateProfileOutput> {
         try {
-            let user = await this.findById(idUser);
-            let rslt = await this.user.save(Object.assign(user, input));
+            if(!authUser) {
+                return {cnt: 0, reason: 'invalid user'};
+            }
+            let rslt = await this.user.save(Object.assign(authUser, input));
             if(rslt) {
                 return {cnt: 1, reason: 'ok'};
             }
@@ -193,29 +209,35 @@ export class UsersService {
         }
     }
 
-    async expireProfile(idUser: number, {email}: ExpireProfileInput): Promise<CommonOutput> {
+    /**
+     * @description: 계정 미사용처리
+     */
+    async expireProfile(authUser: User, {email}: ExpireProfileInput): Promise<CommonOutput> {
         try {
-            let user = await this.findById(idUser);
-            if(user.email !== email) {
+            if(!authUser) {
+                return {cnt: 0, reason: 'invalid user'};
+            }
+
+            if(authUser.email !== email) {
                 return {cnt: 0, reason: `cannot expire other user`};
             }
             let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
                                      .replace(/\./g,'')
                                      .split(' ')
                                      .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
-            if(user.ddExpire <= now) {
+            if(authUser.ddExpire <= now) {
                 return {cnt: 0, reason: `already expired`};
             }
 
-            user['ddExpire'] = now;
-            let rslt = await this.user.save(user);
+            authUser['ddExpire'] = now;
+            let rslt = await this.user.save(authUser);
             if(rslt) {
                 return {cnt: 1, reason: 'ok'};
             }
             return {cnt: 0, reason: `couldn't expire the user`};
         } catch(e) {
-            this.logger.error(`idUser: ${idUser}, catch Error(e): ${e}, `, 'expireProfile')
-            return {cnt: 0, reason: `error while expiring the user: ${idUser}`};
+            this.logger.error(`idUser: ${authUser.id}, catch Error(e): ${e}, `, 'expireProfile')
+            return {cnt: 0, reason: `error while expiring the user: ${authUser.id}`};
         }
     }
 }

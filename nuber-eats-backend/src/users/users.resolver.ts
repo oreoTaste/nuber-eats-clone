@@ -11,6 +11,7 @@ import { AuthUser } from 'src/auth/auth-user.decorator';
 import { UpdateProfileInput, UpdateProfileOutput } from './dtos/update-profile.dto';
 import { ExpireProfileInput, ExpireProfileOutput } from './dtos/expire-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
+import { GenerateEmailCodeOutput } from './dtos/generate-email-code.dto';
 
 @Resolver(of => User)
 export class UsersResolver {
@@ -20,6 +21,7 @@ export class UsersResolver {
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
     @Mutation(type => CreateAccountOutput)
+    @UseGuards(AuthGuard)
     createAccount(@Args('input')input: CreateAccountInput): Promise<CreateAccountOutput> {
         return this.service.createAccount(input);
     }
@@ -28,6 +30,7 @@ export class UsersResolver {
      * @description: 그룹내 사용자 조회 (사용자 그룹 검색 -> 사용자 조회)
     */    
     @Query(type => SearchGrpUsersOutput)
+    @UseGuards(AuthGuard)
     searchGrpUsers(@Args('input') input: SearchGrpUsersInput): Promise<SearchGrpUsersOutput> {
         return this.service.searchGrpUsers(input);
     }
@@ -59,13 +62,24 @@ export class UsersResolver {
     @UseGuards(AuthGuard)
     updateProfile(@AuthUser() authUser: User
                 , @Args('input') input: UpdateProfileInput): Promise<UpdateProfileOutput>{
-        return this.service.updateProfile(authUser.id, input);
+        return this.service.updateProfile(authUser, input);
     }
 
+    /**
+     * @description: 계정 미사용처리
+     */
     @Mutation(type => ExpireProfileOutput)
     expireProfile(@AuthUser() authUser: User
                 , @Args('input') input: ExpireProfileInput): Promise<ExpireProfileOutput>{
-        return this.service.expireProfile(authUser.id, input);
+        return this.service.expireProfile(authUser, input);
+    }
+
+    /**
+     * @description: 이메일 코드요청
+     */
+    @Mutation(type => GenerateEmailCodeOutput)
+    generateEmailCode(@AuthUser() authUser: User): Promise<GenerateEmailCodeOutput> {
+        return this.service.generateEmailCode(authUser);
     }
 
     /**
@@ -74,6 +88,6 @@ export class UsersResolver {
     @Mutation(type => VerifyEmailOutput)
     verifyEmail(@AuthUser() authUser: User
               , @Args('input') input: VerifyEmailInput): Promise<VerifyEmailOutput> {
-        return this.service.verifyEmail(authUser.id, input);
+        return this.service.verifyEmail(authUser, input);
     }
 }

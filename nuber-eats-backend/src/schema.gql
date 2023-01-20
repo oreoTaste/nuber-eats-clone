@@ -237,6 +237,11 @@ type VerifyEmailOutput {
   reason: String
 }
 
+type GenerateEmailCodeOutput {
+  cnt: Float
+  reason: String
+}
+
 type Query {
   findHealthMarkGrp(input: FindHealthMarkGrpInput!): FindHealthMarkGrpOutput!
   findHealthMark(input: FindHealthMarkInput!): FindHealthMarkOutput!
@@ -508,6 +513,7 @@ type Mutation {
   createAccount(input: CreateAccountInput!): CreateAccountOutput!
   updateProfile(input: UpdateProfileInput!): UpdateProfileOutput!
   expireProfile(input: ExpireProfileInput!): ExpireProfileOutput!
+  generateEmailCode: GenerateEmailCodeOutput!
   verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
 }
 

@@ -6,9 +6,7 @@ import { HealthRecord } from "src/health/entities/health.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from "@nestjs/common";
-import { OneToOne } from "typeorm/decorator/relations/OneToOne";
 import { JoinColumn } from "typeorm/decorator/relations/JoinColumn";
-import { Relation } from "typeorm/common/RelationType";
 
 @ObjectType()
 @InputType("UserGrpInput", {isAbstract: true})
@@ -122,6 +120,10 @@ export class User extends CoreEntity implements CoreInterface{
                 }
         }
 
+        // @IsOptional()
+        // toString() {
+        //         return `id:${this.id}, nmUser:${this.nmUser}, nmUser:${this.ddBirth}, ddExpire:${this.ddExpire}, ddBirth:${this.ddBirth}, dtEmailVerified:${this.dtEmailVerified}, email:${this.email}`;
+        // }
 }
 
 
