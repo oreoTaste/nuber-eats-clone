@@ -57,7 +57,7 @@ export class User extends CoreEntity implements CoreInterface{
         @Field({description: "이메일 검증일시", nullable: true})
         @IsDate()
         @IsOptional()
-        dtEmailVerified: Date;
+        dtEmailVerified?: Date;
 
         @ManyToOne(type=>UserGrp
                 , (userGrp) => userGrp.users

@@ -51,7 +51,7 @@ export class UsersService {
     /** 
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
-    async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ddExpire, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
+    async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ddExpire, email, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
         let accountUserGrp: UserGrp;
         try {
             let [userGrp, cnt] = await this.userGrp.findAndCount({where: {nmUserGrp, tpUserGrp, desc: descUserGrp}});
@@ -68,27 +68,31 @@ export class UsersService {
         }
 
         try {
-            let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
-            if(!existingUser) {
-                let monthLater = new Date(new Date().setMonth(new Date().getMonth()+1))
-                                .toLocaleDateString('ko', {dateStyle: 'medium'})
-                                .replace(/\./g,'')
-                                .split(' ')
-                                .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
-                let account = await this.user.save(
-                                        this.user.create({ddExpire:`${ddExpire? ddExpire: monthLater}`
-                                                        , nmUser
-                                                        , ddBirth
-                                                        , desc:descUser
-                                                        , ...etc
-                                                        , userGrp:accountUserGrp
-                                                        , password}));
-                let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
-                let rslt = await this.emailVerification.save(verification);
-                return {cnt: 1, reason: 'ok', idUser: account.id};
-            } else {
-                return {cnt: 0, reason: 'found user already', idUser: null};
+            let emailUser = await this.user.findOne({where: {email: email}});
+            if(emailUser) {
+                return {cnt: 0, reason: 'found user with the email', idUser: null};
             }
+            let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
+            if(existingUser) {
+                return {cnt: 0, reason: 'found user already with the name and the birthdate', idUser: null};
+            }
+            let monthLater = new Date(new Date().setMonth(new Date().getMonth()+1))
+                                                .toLocaleDateString('ko', {dateStyle: 'medium'})
+                                                .replace(/\./g,'')
+                                                .split(' ')
+                                                .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+            let account = await this.user.save(
+                                    this.user.create({ddExpire:`${ddExpire? ddExpire: monthLater}`
+                                                    , nmUser
+                                                    , ddBirth
+                                                    , desc:descUser
+                                                    , email
+                                                    , ...etc
+                                                    , userGrp:accountUserGrp
+                                                    , password}));
+            let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
+            await this.emailVerification.save(verification);
+            return {cnt: 1, reason: 'ok', idUser: account.id};
         } catch(e){
             this.logger.error(`catch Error(e): ${e}`, 'createAccount');
             return {cnt: 0, reason: 'error while creating user account', idUser: null};
@@ -100,12 +104,15 @@ export class UsersService {
      */
     async generateEmailCode(authUser: User): Promise<GenerateEmailCodeOutput> {
         try {
-            this.logger.warn(authUser);
+            if(authUser.dtEmailVerified) {
+                return {cnt: 0, reason: 'email already verified'};
+            }
+            this.logger.log(authUser);
             let verification = await this.emailVerification.save(this.emailVerification.create({user: authUser, idUpdate: authUser.id, idInsert: authUser.id}));
-            this.logger.warn(verification);
+            this.logger.log(verification);
             return {cnt: 1, reason: 'ok'};
         } catch(e) {
-            this.logger.warn(`catch Error(e): ${e}`, 'generateEmailCode');
+            this.logger.error(`catch Error(e): ${e}`, 'generateEmailCode');
             return {cnt: 0, reason: 'error while generating email verification code'};
         }
     }
@@ -122,12 +129,15 @@ export class UsersService {
             if(authUser.dtEmailVerified) {
                 return {cnt: 0, reason: 'already verified'};
             }
-            let verification = await this.emailVerification.findOne({order: {dtInsert: 'DESC'}, where: {...authUser.emailVerification}})
+            let verification = await this.emailVerification.findOne({order: {dtInsert: 'DESC'}, where: {...authUser.emailVerification}});
             if(verification.code !== code) {
                 return {cnt: 0, reason: 'wrong code input'};
             }
-            authUser.dtEmailVerified = new Date();
-            await this.user.save(authUser);
+            let now = new Date();
+            verification.dtUpdate = now;
+            authUser.dtEmailVerified = now;
+            await this.emailVerification.save(verification); // dtUpdate 수정
+            await this.user.update(authUser.id, {dtEmailVerified: now}); // dtEmailVerified 수정
             return {cnt: 1, reason: 'ok'}    
         } catch(e) {
             this.logger.error(`catch Error(e): ${e}`, 'verifyEmail');
@@ -165,15 +175,24 @@ export class UsersService {
             if(!user) {
                 return {cnt: 0, reason: "wrong information1"};
             }
-            let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
+            let today = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
                                     .replace(/\./g,'')
                                     .split(' ')
                                     .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
-            if(user.ddExpire <= now) {
+            if(user.ddExpire <= today) {
                 return {cnt: 0, reason: 'the account is expired'};
             }
             let goodPassword = await user.checkPassword(password);
             if(goodPassword) {
+                let monthLater = new Date(new Date().setMonth(new Date().getMonth()+1))
+                                                    .toLocaleDateString('ko', {dateStyle: 'medium'})
+                                                    .replace(/\./g,'')
+                                                    .split(' ')
+                                                    .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+
+                if(user.ddExpire < monthLater) {
+                    await this.user.update(user.id, {ddExpire: monthLater});
+                }
                 return {cnt: 0, reason: "ok", token: this.jwtService.sign(user.id)};
             } else {
                 return {cnt: 0, reason: "wrong  information2"};
@@ -221,15 +240,15 @@ export class UsersService {
             if(authUser.email !== email) {
                 return {cnt: 0, reason: `cannot expire other user`};
             }
-            let now = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
+            let today = new Date().toLocaleDateString('ko', {dateStyle: 'medium'})
                                      .replace(/\./g,'')
                                      .split(' ')
                                      .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
-            if(authUser.ddExpire <= now) {
+            if(authUser.ddExpire <= today) {
                 return {cnt: 0, reason: `already expired`};
             }
 
-            authUser['ddExpire'] = now;
+            authUser['ddExpire'] = today;
             let rslt = await this.user.save(authUser);
             if(rslt) {
                 return {cnt: 1, reason: 'ok'};

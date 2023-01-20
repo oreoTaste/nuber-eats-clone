@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SearchUserInput, SearchUserOutput } from './dtos/search-user.dto';
 import { SearchGrpUsersInput, SearchGrpUsersOutput } from './dtos/search-grp-uses.dto';
 import { User } from './entities/user.entity';
@@ -21,7 +21,6 @@ export class UsersResolver {
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
     @Mutation(type => CreateAccountOutput)
-    @UseGuards(AuthGuard)
     createAccount(@Args('input')input: CreateAccountInput): Promise<CreateAccountOutput> {
         return this.service.createAccount(input);
     }
@@ -58,6 +57,9 @@ export class UsersResolver {
         return authUser;
     }
 
+    /**
+     * @description: 자기 프로필 수정
+     */
     @Mutation(type => UpdateProfileOutput)
     @UseGuards(AuthGuard)
     updateProfile(@AuthUser() authUser: User
