@@ -19,6 +19,7 @@ import { RequestMethod } from '@nestjs/common/enums';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { LoggerModule } from './logger/logger.module';
       isGlobal: true,
     }),
     AuthModule,
-    LoggerModule
+    LoggerModule,
+    MailModule
   ],
   controllers: [AppController],
   providers: [AppService, OCR],

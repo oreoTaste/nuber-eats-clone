@@ -38,6 +38,7 @@
     "fastify-swagger": "^5.2.0",
     "graphql": "^16.6.0",
     "jsonwebtoken": "^9.0.0",
+    "mailgun.js": "^8.0.6",
     "nestjs-joi": "^1.9.0",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",

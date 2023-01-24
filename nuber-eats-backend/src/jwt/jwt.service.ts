@@ -7,8 +7,9 @@ import { Logger } from 'src/logger/logger.service';
 export class JwtService {
     constructor(private readonly configService: ConfigService,
                 private readonly logger: Logger){
-                    logger.setContext(JwtService.name);
-                }
+        this.logger.setContext(JwtService.name);
+        this.logger.log("JwtService", "constructor");
+    }
 
     /**
      * @description: 토큰으로부터 사용자ID분리
