@@ -15,18 +15,22 @@ export class MailService {
 
     async send(emailTo: string, subject: string, text: string): Promise<boolean> {
         try {
+            this.logger.log(`emailTo:${emailTo}, subject:${subject}, text:${text}`,'send');
             const EMAILFROM = this.configService.get("MAILGUN_FROM_EMAIL");
             const APIKEY = this.configService.get("MAILGUN_API_KEY");
             const username = "Health Manager";
             const client = new Mailgun(formData).client({ key: APIKEY, username });
             const DOMAIN = this.configService.get("MAILGUN_API_URL");
 
-            let rslt = await client.messages.create(DOMAIN,{from: `Health Manager <${EMAILFROM}>`,
+            let {status, id, message} = await client.messages.create(DOMAIN,{from: `Health Manager <${EMAILFROM}>`,
                                                             to: emailTo,
                                                             subject,
                                                             text});
-            this.logger.log(`rslt:${rslt}`,'send');
-            return true;
+            this.logger.log(`status:${status}, id:${id}, message:${message}`,'send');
+            if(status == 200) {
+                return true;
+            }
+            throw Error(message);
         } catch(e) {
             this.logger.error(`catch error e:${e}`,'send');
         }

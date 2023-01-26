@@ -99,7 +99,7 @@ export class User extends CoreEntity implements CoreInterface{
         @BeforeInsert()
         @BeforeUpdate()
         async encryptPassword(): Promise<void> {
-                if(!this.password) {
+                if(this.password) {
                         try {
                                 this.password = await bcrypt.hash(this.password, 10);
                         } catch(e) {

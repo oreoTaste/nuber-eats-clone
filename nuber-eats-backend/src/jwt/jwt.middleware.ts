@@ -21,7 +21,6 @@ export class JwtMiddleware implements NestMiddleware {
                 req['user'] = user;
                 res.clearCookie('token');
                 res.cookie('token', token);
-                // } catch(e) {
             } catch(e) {}
         }
         next();

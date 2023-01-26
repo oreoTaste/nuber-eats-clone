@@ -15,7 +15,7 @@ export class JwtService {
      * @description: 토큰으로부터 사용자ID분리
      */
     decodeUser(token: string): string {
-        return jwt.decode(token)['idUser'];
+        return jwt.decode(token)['id'];
     }
 
     /**
@@ -24,11 +24,11 @@ export class JwtService {
      */
     sign(id: number) {
         this.logger.log(`user-id: ${id}`, 'sign');
-        let token = jwt.sign({'idUser': id}, this.configService.get("TOKEN_KEY"), {algorithm: "HS512", expiresIn:"3m"})
+        let token = jwt.sign({id}, this.configService.get("TOKEN_KEY"), {algorithm: "HS512", expiresIn:"3m"})
         this.logger.log(`new token:` + ` ${token}`, 'sign');
         let decoded = jwt.decode(token);
         this.logger.log(`open new token:`
-                  + ` idUser: ${decoded['idUser']}`
+                  + ` id: ${decoded['id']}`
                   + `, iat: ${new Date(decoded['iat']*1000).toLocaleDateString().replace(/ /g,'')} ${new Date(decoded['iat']*1000).toLocaleTimeString()}`
                   + `, exp: ${new Date(decoded['exp']*1000).toLocaleDateString().replace(/ /g,'')} ${new Date(decoded['exp']*1000).toLocaleTimeString()}`
                   , 'sign');
@@ -67,13 +67,15 @@ export class JwtService {
         try {
             let oldToken = jwt.decode(token);
             this.logger.log(`open old token:`
-                      + ` idUser: ${oldToken['idUser']}`
+                      + ` id: ${oldToken['id']}`
                       + `, iat: ${new Date(oldToken['iat']*1000).toLocaleDateString().replace(/ /g,'')} ${new Date(oldToken['iat']*1000).toLocaleTimeString()}`
                       + `, exp: ${new Date(oldToken['exp']*1000).toLocaleDateString().replace(/ /g,'')} ${new Date(oldToken['exp']*1000).toLocaleTimeString()}`
                       , 'reissue');
-            let newToken = this.sign(oldToken['idUser']);
+            let newToken = this.sign(oldToken['id']);
+            this.logger.error(`new token(e): ${newToken}`, 'reissue');
             return {'ok': true, newToken};
         } catch(e) {
+            this.logger.error(`catch error(e): ${e}`, 'reissue');
             return {'ok': false, 'newToken': null}
         }
     }

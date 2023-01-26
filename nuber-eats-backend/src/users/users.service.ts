@@ -14,6 +14,7 @@ import { ExpireProfileInput } from './dtos/expire-profile.dto';
 import { Logger } from 'src/logger/logger.service';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { GenerateEmailCodeOutput } from './dtos/generate-email-code.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +23,7 @@ export class UsersService {
                 @InjectRepository(UserGrp) private readonly userGrp: Repository<UserGrp>,
                 @InjectRepository(EmailVerification) private readonly emailVerification: Repository<EmailVerification>,
                 /*@Inject(forwardRef(() => ConfigService)) */ private readonly configService: ConfigService,
+                private readonly mailService: MailService,
                 private readonly jwtService: JwtService,
                 private readonly logger: Logger,
                 ){
@@ -52,6 +54,10 @@ export class UsersService {
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
     async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ddExpire, email, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
+        let emailUser = await this.user.findOne({where: {email}});
+        if(emailUser) {
+            return {cnt: 0, reason: 'found user with the email', idUser: null};
+        }
         let accountUserGrp: UserGrp;
         try {
             let [userGrp, cnt] = await this.userGrp.findAndCount({where: {nmUserGrp, tpUserGrp, desc: descUserGrp}});
@@ -68,10 +74,6 @@ export class UsersService {
         }
 
         try {
-            let emailUser = await this.user.findOne({where: {email: email}});
-            if(emailUser) {
-                return {cnt: 0, reason: 'found user with the email', idUser: null};
-            }
             let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
             if(existingUser) {
                 return {cnt: 0, reason: 'found user already with the name and the birthdate', idUser: null};
@@ -92,7 +94,12 @@ export class UsersService {
                                                     , password}));
             let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
             await this.emailVerification.save(verification);
-            return {cnt: 1, reason: 'ok', idUser: account.id};
+            let rslt = this.mailService.send(account.email, 'please verify your email', `code: ${verification.code}`);
+            if(rslt) {
+                return {cnt: 1, reason: 'ok', idUser: account.id};
+            } else {
+                return {cnt: 0, reason: 'error while sending email verification code'};
+            }
         } catch(e){
             this.logger.error(`catch Error(e): ${e}`, 'createAccount');
             return {cnt: 0, reason: 'error while creating user account', idUser: null};
@@ -110,7 +117,12 @@ export class UsersService {
             this.logger.log(authUser);
             let verification = await this.emailVerification.save(this.emailVerification.create({user: authUser, idUpdate: authUser.id, idInsert: authUser.id}));
             this.logger.log(verification);
-            return {cnt: 1, reason: 'ok'};
+            let rslt = this.mailService.send(authUser.email, 'please verify your email', `code: ${verification.code}`);
+            if(rslt) {
+                return {cnt: 1, reason: 'ok'};
+            } else {
+                return {cnt: 0, reason: 'error while sending email verification code'};
+            }
         } catch(e) {
             this.logger.error(`catch Error(e): ${e}`, 'generateEmailCode');
             return {cnt: 0, reason: 'error while generating email verification code'};
