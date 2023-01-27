@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Global, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'src/logger/logger.service';
 import Mailgun from 'mailgun.js';
@@ -16,7 +16,7 @@ export class MailService {
               , private readonly logger: Logger){
         this.logger.setContext(MailService.name);
         this.logger.log("MailService", "constructor");
-        this.sendTemplate('youngkuk.sohn@gmail.com', 'test subject', 'verification', {username: "Youngkuk Sohn", code: "test code 12345"});
+        // this.sendTemplate('youngkuk.sohn@gmail.com', 'test subject', 'verification', {username: "Youngkuk Sohn", code: "test code 12345"});
         // this.sendText('youngkuk.sohn@gmail.com', 'test subject', "normal text");
     }
 

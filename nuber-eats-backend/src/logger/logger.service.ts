@@ -1,6 +1,12 @@
-import { ConsoleLogger } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 
+@Injectable()
 export class Logger extends ConsoleLogger {
+  constructor() {
+    super();
+    this.setContext(Logger.name);
+    this.log("Logger", "constructor");
+  }
   log(message: any, method?: string): void {
     if(method) {
       super.log(message, `${this.context} > ${method}`);

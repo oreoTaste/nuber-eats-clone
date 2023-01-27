@@ -1,4 +1,5 @@
 import { Module, DynamicModule } from '@nestjs/common';
+import { LoggerModule } from 'src/logger/logger.module';
 import { Logger } from 'src/logger/logger.service';
 import { JwtService } from './jwt.service';
 
@@ -13,8 +14,9 @@ export class JwtModule {
         return {
             global: option.isGlobal,
             module: JwtModule,
+            imports: [LoggerModule],
             exports: [JwtService],
-            providers: [JwtService, Logger]
+            providers: [JwtService]
         }
     }
 }
