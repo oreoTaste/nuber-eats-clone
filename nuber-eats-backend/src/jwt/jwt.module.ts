@@ -1,4 +1,4 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { Module, DynamicModule, Global } from '@nestjs/common';
 import { LoggerModule } from 'src/logger/logger.module';
 import { Logger } from 'src/logger/logger.service';
 import { JwtService } from './jwt.service';
@@ -9,6 +9,7 @@ type Option = {
 @Module({
 //   providers: [JwtService]
 })
+// @Global()
 export class JwtModule {
     static forRoot(option: Option): DynamicModule{
         return {

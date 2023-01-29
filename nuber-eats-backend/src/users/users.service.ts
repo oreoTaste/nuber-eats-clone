@@ -94,7 +94,8 @@ export class UsersService {
                                                     , password}));
             let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
             await this.emailVerification.save(verification);
-            let rslt = this.mailService.sendTemplate(account.email, 'please verify your email', 'verification', {username:account.nmUser, code: verification.code});
+            let rslt = this.mailService.sendTemplate(account.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
+                                                                                                                 {code: 'username', value: account.nmUser}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok', idUser: account.id};
             } else {
@@ -117,7 +118,8 @@ export class UsersService {
             this.logger.log(authUser);
             let verification = await this.emailVerification.save(this.emailVerification.create({user: authUser, idUpdate: authUser.id, idInsert: authUser.id}));
             this.logger.log(verification);
-            let rslt = this.mailService.sendTemplate(authUser.email, 'please verify your email', 'verification', {username:authUser.nmUser, code: verification.code});
+            let rslt = this.mailService.sendTemplate(authUser.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
+                                                                                                                  {code: 'username', value: authUser.nmUser}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok'};
             } else {
@@ -230,11 +232,16 @@ export class UsersService {
             if(!authUser) {
                 return {cnt: 0, reason: 'invalid user'};
             }
-            let rslt = await this.user.save(Object.assign(authUser, input));
-            if(rslt) {
-                return {cnt: 1, reason: 'ok'};
+            let newUser = await this.user.save(Object.assign(authUser, input));
+            if(!newUser) {
+                return {cnt: 0, reason: 'failed to update profile'};
             }
-            throw Error();
+            if(input.email && authUser.email != input.email) {
+                newUser.dtEmailVerified = null;
+                this.user.update(newUser.id, {dtEmailVerified: null});
+                return this.generateEmailCode(authUser);
+            }
+            return {cnt: 1, reason: 'ok'};
         } catch(e) {
             return {cnt: 0, reason: 'error while updating profile'};
         }

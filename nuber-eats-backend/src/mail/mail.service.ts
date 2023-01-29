@@ -5,9 +5,9 @@ import Mailgun from 'mailgun.js';
 import * as formData from 'form-data';
 import { MailgunMessageData } from 'mailgun.js/interfaces/Messages';
 
-type VARIABLES = {
-    username: string,
-    code: string
+type VARIABLE = {
+    code: string,
+    value: string
 }
 
 @Injectable()
@@ -16,32 +16,34 @@ export class MailService {
               , private readonly logger: Logger){
         this.logger.setContext(MailService.name);
         this.logger.log("MailService", "constructor");
-        // this.sendTemplate('youngkuk.sohn@gmail.com', 'test subject', 'verification', {username: "Youngkuk Sohn", code: "test code 12345"});
+        // this.sendTemplate('youngkuk.sohn@gmail.com', 'test subject', 'verification', [{code: "code", value: "12345"}, {code: "username", value: "Youngkuk Sohn"}]);
         // this.sendText('youngkuk.sohn@gmail.com', 'test subject', "normal text");
     }
 
-    async sendTemplate(emailTo: string, subject: string, template: string, variables: VARIABLES): Promise<boolean> {
+    async sendTemplate(emailTo: string, subject: string, template: string, variables: VARIABLE[]): Promise<boolean> {
         const EMAILFROM = this.configService.get("MAILGUN_FROM_EMAIL");
+        let mailgunVariables = {};
+        variables.forEach(el => mailgunVariables[el.code] = el.value);
         const data = {from: `Health Manager <${EMAILFROM}>`,
-                            to: emailTo,
-                            subject,
-                            template,
-                            'h:X-Mailgun-Variables': JSON.stringify(variables)
-                        };
+                      to: emailTo,
+                      subject,
+                      template,
+                      'h:X-Mailgun-Variables': JSON.stringify(mailgunVariables)};
         return await this.send(emailTo, subject, data);
     }
     async sendText(emailTo: string, subject: string, text: string): Promise<boolean> {
         const EMAILFROM = this.configService.get("MAILGUN_FROM_EMAIL");
         const data = {from: `Health Manager <${EMAILFROM}>`,
-                            to: emailTo,
-                            subject,
-                            text};
+                      to: emailTo,
+                      subject,
+                      text};
         return await this.send(emailTo, subject, data);
     }
 
     async send(emailTo: string, subject: string, data: MailgunMessageData): Promise<boolean> {
         try {
-            this.logger.log(`emailTo:${emailTo}, subject:${subject}`,'send');
+            let {from, to, subject, text, template, ...etc} = data;
+            this.logger.log(`from:${from}, emailTo:${emailTo}, subject:${subject}${text?`, text:`+text:""}${template?`, template:`+template: ""}, data:${etc['h:X-Mailgun-Variables']}`,'send');
             const APIKEY = this.configService.get("MAILGUN_API_KEY");
             const username = "Health Manager";
             const client = new Mailgun(formData).client({ key: APIKEY, username });
