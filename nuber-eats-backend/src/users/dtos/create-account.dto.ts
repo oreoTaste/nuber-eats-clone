@@ -17,6 +17,7 @@ export class CreateAccountInput extends IntersectionType(OmitType(User, ['id', '
     descUser?: string; // 사용자 그룹명
 
     @Field(type => Int, {nullable: true})
+    @IsOptional()
     idUser?: number;
 
     @Field({description: "비밀번호"})

@@ -74,7 +74,7 @@ export class UsersService {
         }
 
         try {
-            let existingUser = await this.user.findOne({where: {nmUser, ddBirth, desc:descUser}});
+            let existingUser = await this.user.findOne({relations: ['userGrp'], where: {nmUser, ddBirth, userGrp: {id: accountUserGrp.id}}});
             if(existingUser) {
                 return {cnt: 0, reason: 'found user already with the name and the birthdate', idUser: null};
             }
@@ -92,8 +92,8 @@ export class UsersService {
                                                     , ...etc
                                                     , userGrp:accountUserGrp
                                                     , password}));
-            let verification = this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)});
-            await this.emailVerification.save(verification);
+            let verification = await this.emailVerification.save(
+                                        this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)}));
             let rslt = this.mailService.sendTemplate(account.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
                                                                                                                  {code: 'username', value: account.nmUser}]);
             if(rslt) {
