@@ -27,10 +27,15 @@ describe("UersService", () => {
   let userRepository: MockRepository<User>;
   let userGrpRepository: MockRepository<UserGrp>;
   let emailVerificationRepository: MockRepository<EmailVerification>;
+  let logger: typeof mockLogger;
   let mailService: typeof mockService;
   let mockUser = {email: "test email", ddBirth:'20220215', nmUser: "yk", idInsert: 1, password: "1234",
                   idUpdate: 1, healthRecords: null, checkPassword: null, ddExpire: null, dtInsert: null, 
                   dtUpdate: null, emailVerification:null, encryptPassword:null, id: 100};
+  let mockUser2 = {email: "test email2", ddBirth:'20220215', nmUser: "yk2", idInsert: 1, password: "2345",
+                  idUpdate: 1, healthRecords: null, checkPassword: null, ddExpire: null, dtInsert: null, 
+                  dtUpdate: null, emailVerification:null, encryptPassword:null, id: 100};
+  let mockUserGrp = {id: 1, nmUserGrp: "그룹몀", idInsert: 1, dtInsert: new Date(), dtUpdate: new Date(), idUpdate: 1, tpUserGrp: 1, users: [mockUser, mockUser2]};
   beforeEach(async ()=> {
     const module = await Test.createTestingModule({
       providers: [
@@ -49,11 +54,15 @@ describe("UersService", () => {
     userGrpRepository = module.get(getRepositoryToken(UserGrp));
     emailVerificationRepository = module.get(getRepositoryToken(EmailVerification));
     mailService = module.get(MailService);
+    logger = module.get(Logger);
   })
 
   it('should be compiled', ()=> {
     expect(userService).toBeDefined();
     expect(userRepository).toBeDefined();
+    expect(userGrpRepository).toBeDefined();
+    expect(emailVerificationRepository).toBeDefined();
+    expect(mailService).toBeDefined();
   })
   describe('createAccount', () => {
     it('should fail if user exists', async () => {
@@ -96,9 +105,37 @@ describe("UersService", () => {
       expect(emailVerificationRepository.create).toBeCalledTimes(1);
     })
   })
-  it.todo('createAccount');
-  it.todo('searchGrpUsers');
-  it.todo('createAccount');
+
+  describe('searchGrpUsers', () => {
+    it('should fail if coulnt find user group', async () => {
+      userGrpRepository.findAndCount.mockReturnValue([[], 0]);
+      let rslt = await userService.searchGrpUsers({nmUserGrp: "그룹명"});
+      expect(rslt).toMatchObject({cnt: 0, reason: `couldn't found user group`});
+      expect(userGrpRepository.findAndCount).toBeCalledTimes(1);
+    })
+
+    it('succeed if finds one user group', async () => {
+      userGrpRepository.findAndCount.mockReturnValue([[mockUserGrp], 1]);
+      logger.error.mockImplementation((...args) => {
+        console.log(args)
+      })
+      let rslt = await userService.searchGrpUsers({nmUserGrp: "그룹명"});
+      expect(rslt).toMatchObject({users: mockUserGrp.users, cnt: mockUserGrp.users.length, reason: 'ok'});
+      expect(userGrpRepository.findAndCount).toBeCalledTimes(1);
+    });
+    
+    it('succeed if finds multiple user groups', async() => {
+      userGrpRepository.findAndCount.mockReturnValue([[mockUserGrp, mockUserGrp], 2]);
+      logger.error.mockImplementation((...args) => {
+        console.log(args)
+      })
+      let rslt = await userService.searchGrpUsers({nmUserGrp: "그룹명"});
+      let expectReslt = [mockUserGrp, mockUserGrp].map(el => el.users).flat();
+      expect(rslt).toMatchObject({users: expectReslt, cnt: expectReslt.length, reason: 'ok'});      
+      expect(userGrpRepository.findAndCount).toBeCalledTimes(1);
+    })
+  })
+  
   it.todo('generateEmailCode');
   it.todo('verifyEmail');
   it.todo('searchUser');
