@@ -15,10 +15,13 @@ const mockRepository = () => ({
   save: jest.fn(),
 })
 type MockRepository<T=any> = Partial<Record<keyof Repository<User>, jest.Mock>>;
-const mockService = {
+const mockJwtService = {}
+const mockConfigService = {}
+const mockMailService = {
   sendTemplate: jest.fn(),
 }
 const mockLogger = {
+  log: jest.fn(),
   setContext: jest.fn(),
   error: jest.fn()
 }
@@ -28,14 +31,14 @@ describe("UersService", () => {
   let userGrpRepository: MockRepository<UserGrp>;
   let emailVerificationRepository: MockRepository<EmailVerification>;
   let logger: typeof mockLogger;
-  let mailService: typeof mockService;
+  let mailService: typeof mockMailService;
   let mockUser = {email: "test email", ddBirth:'20220215', nmUser: "yk", idInsert: 1, password: "1234",
                   idUpdate: 1, healthRecords: null, checkPassword: null, ddExpire: null, dtInsert: null, 
                   dtUpdate: null, emailVerification:null, encryptPassword:null, id: 100};
   let mockUser2 = {email: "test email2", ddBirth:'20220215', nmUser: "yk2", idInsert: 1, password: "2345",
                   idUpdate: 1, healthRecords: null, checkPassword: null, ddExpire: null, dtInsert: null, 
                   dtUpdate: null, emailVerification:null, encryptPassword:null, id: 100};
-  let mockUserGrp = {id: 1, nmUserGrp: "그룹몀", idInsert: 1, dtInsert: new Date(), dtUpdate: new Date(), idUpdate: 1, tpUserGrp: 1, users: [mockUser, mockUser2]};
+  let mockUserGrp = {id: 1, nmUserGrp: "그룹몀", idInsert: 1, dtInsert: new Date(), dtUpdate: new Date(), idUpdate: 1, users: [mockUser, mockUser2]};
   beforeEach(async ()=> {
     const module = await Test.createTestingModule({
       providers: [
@@ -43,10 +46,10 @@ describe("UersService", () => {
         {provide: getRepositoryToken(User), useValue: mockRepository()},
         {provide: getRepositoryToken(UserGrp), useValue: mockRepository()},
         {provide: getRepositoryToken(EmailVerification), useValue: mockRepository()},
-        {provide: JwtService, useValue: mockService},
+        {provide: JwtService, useValue: mockJwtService},
         {provide: Logger, useValue: mockLogger},
-        {provide: ConfigService, useValue: mockService},
-        {provide: MailService, useValue: mockService},
+        {provide: ConfigService, useValue: mockConfigService},
+        {provide: MailService, useValue: mockMailService},
       ]
     }).compile();
     userService = module.get(UsersService);
@@ -56,6 +59,9 @@ describe("UersService", () => {
     mailService = module.get(MailService);
     logger = module.get(Logger);
   })
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should be compiled', ()=> {
     expect(userService).toBeDefined();
@@ -103,6 +109,7 @@ describe("UersService", () => {
       expect(userRepository.create).toBeCalledTimes(1);
       expect(emailVerificationRepository.save).toBeCalledTimes(1);
       expect(emailVerificationRepository.create).toBeCalledTimes(1);
+      expect(mailService.sendTemplate).toBeCalledTimes(1);
     })
   })
 
@@ -136,7 +143,47 @@ describe("UersService", () => {
     })
   })
   
-  it.todo('generateEmailCode');
+  describe('generateEmailCode', () => {
+    it('should fail if email has been verified already', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      mockAuthUser['dtEmailVerified'] = new Date();
+      let rslt = await userService.generateEmailCode({...mockAuthUser, userGrp: {...mockUserGrp}});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'email already verified'});
+    });
+
+    it('should fail if email verification doesnt work', async () => {
+      emailVerificationRepository.create.mockReturnValue({'code': '1234'});
+      emailVerificationRepository.save.mockResolvedValue({'code': '1234'});
+      mailService.sendTemplate.mockResolvedValue(false);
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      mockAuthUser['dtEmailVerified'] = null;
+      let rslt = await userService.generateEmailCode({...mockAuthUser, userGrp: {...mockUserGrp}});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'error while sending email verification code'});
+      expect(emailVerificationRepository.create).toBeCalledTimes(1);
+      expect(emailVerificationRepository.save).toBeCalledTimes(1);
+      expect(mailService.sendTemplate).toBeCalledTimes(1);
+    });
+
+    it('should succeed', async () => {
+      emailVerificationRepository.create.mockReturnValue({'code': '1234'});
+      emailVerificationRepository.save.mockResolvedValue({'code': '1234'});
+      mailService.sendTemplate.mockResolvedValue(true);
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      mockAuthUser['dtEmailVerified'] = null;
+      let rslt = await userService.generateEmailCode({...mockAuthUser, userGrp: {...mockUserGrp}});
+      expect(rslt).toMatchObject({cnt: 1, reason: 'ok'});
+      expect(emailVerificationRepository.create).toBeCalledTimes(1);
+      expect(emailVerificationRepository.save).toBeCalledTimes(1);
+      expect(mailService.sendTemplate).toBeCalledTimes(1);
+    });    
+  });
+
   it.todo('verifyEmail');
   it.todo('searchUser');
   it.todo('login');

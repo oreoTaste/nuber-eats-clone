@@ -94,7 +94,7 @@ export class UsersService {
                                                     , password}));
             let verification = await this.emailVerification.save(
                                         this.emailVerification.create({user: account, ...etc, idUpdate: (etc.idUpdate? etc.idUpdate: etc.idInsert)}));
-            let rslt = this.mailService.sendTemplate(account.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
+            let rslt = await this.mailService.sendTemplate(account.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
                                                                                                                  {code: 'username', value: account.nmUser}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok', idUser: account.id};
@@ -118,8 +118,8 @@ export class UsersService {
             this.logger.log(authUser);
             let verification = await this.emailVerification.save(this.emailVerification.create({user: authUser, idUpdate: authUser.id, idInsert: authUser.id}));
             this.logger.log(verification);
-            let rslt = this.mailService.sendTemplate(authUser.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
-                                                                                                                  {code: 'username', value: authUser.nmUser}]);
+            let rslt = await this.mailService.sendTemplate(authUser.email, 'please verify your email', 'verification', [{code: 'code', value: verification.code},
+                                                                                                                        {code: 'username', value: authUser.nmUser}]);
             if(rslt) {
                 return {cnt: 1, reason: 'ok'};
             } else {

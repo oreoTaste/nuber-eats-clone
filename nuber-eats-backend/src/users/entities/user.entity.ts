@@ -26,7 +26,7 @@ export class UserGrp extends CoreEntity implements CoreInterface{
         @Field({description: "사용자 그룹타입", nullable: true})
         @IsString()
         @IsOptional()
-        tpUserGrp: string; // 사용자 그룹의 타입
+        tpUserGrp?: string; // 사용자 그룹의 타입
 
         @OneToMany(type=>User
                 , (user) => user.userGrp
