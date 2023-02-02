@@ -136,7 +136,7 @@ export class UsersService {
      */
     async verifyEmail(authUser: User, {code}: VerifyEmailInput): Promise<VerifyEmailOutput> {
         try {
-            if(!authUser) {
+            if(!authUser || Object.keys(authUser).length == 0) {
                 return {cnt: 0, reason: 'invalid user'};
             }
             

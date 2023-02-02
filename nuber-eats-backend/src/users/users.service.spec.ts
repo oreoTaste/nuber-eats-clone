@@ -13,6 +13,7 @@ const mockRepository = () => ({
   findAndCount: jest.fn(),
   create: jest.fn(),
   save: jest.fn(),
+  update: jest.fn(),
 })
 type MockRepository<T=any> = Partial<Record<keyof Repository<User>, jest.Mock>>;
 const mockJwtService = {}
@@ -184,7 +185,46 @@ describe("UersService", () => {
     });    
   });
 
-  it.todo('verifyEmail');
+  describe('verifyEmail', () => {
+    it('should fail if no authUser input', async () => {
+      let any:any;
+      any = {};
+      let rslt = await userService.verifyEmail(any, {code: '1234'});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'invalid user'});
+    });
+
+    it('should fail if email has been verified', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      mockAuthUser.dtEmailVerified = new Date();
+      let rslt = await userService.verifyEmail(mockAuthUser, {code: '1234'});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'already verified'});
+    });
+    it('should fail if input code is different', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      emailVerificationRepository.findOne.mockResolvedValue({code: '1111'});
+      let rslt = await userService.verifyEmail(mockAuthUser, {code: '1234'});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'wrong code input'});
+      expect(emailVerificationRepository.findOne).toBeCalledTimes(1);
+    });
+
+    it('should succeed', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      emailVerificationRepository.findOne.mockResolvedValue({code: '1234'});
+      emailVerificationRepository.save.mockResolvedValue({});
+      userRepository.update.mockResolvedValue({});
+      let rslt = await userService.verifyEmail(mockAuthUser, {code: '1234'});
+      expect(rslt).toMatchObject({cnt: 1, reason: 'ok'});
+      expect(emailVerificationRepository.findOne).toBeCalledTimes(1);
+      expect(emailVerificationRepository.save).toBeCalledTimes(1);
+      expect(userRepository.update).toBeCalledTimes(1);
+    })
+  });
   it.todo('searchUser');
   it.todo('login');
   it.todo('findById');
