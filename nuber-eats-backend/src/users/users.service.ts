@@ -171,7 +171,7 @@ export class UsersService {
                 , ...etc
                  } as FindOptionsWhere<User>});
             if(cntUser > 0) {
-                return {cnt:1, reason: "ok", user};
+                return {cnt:cntUser, reason: "ok", user};
             }
             return {cnt: 0, reason: "no user found for the id", user: null};
         } catch(e){

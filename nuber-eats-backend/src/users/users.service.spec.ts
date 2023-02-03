@@ -225,8 +225,45 @@ describe("UersService", () => {
       expect(userRepository.update).toBeCalledTimes(1);
     })
   });
-  it.todo('searchUser');
-  it.todo('login');
+
+  describe('searchUser', () => {
+    it('should fail if no user found', async () => {
+      userRepository.findAndCount.mockResolvedValue([null, 0]);
+      let rslt = await userService.searchUser({idUserGrp: 1, idUser: 1, nmUser: "name"});
+      expect(rslt).toMatchObject({cnt: 0, reason: "no user found for the id", user: null});
+    });
+    
+    it('should succeed if one or more users found', async () => {
+      userRepository.findAndCount.mockResolvedValue([[mockUser, mockUser, mockUser, mockUser, mockUser], 5]);
+      let rslt = await userService.searchUser({idUserGrp: 1, idUser: 1, nmUser: "name"});
+      expect(rslt).toMatchObject({cnt:5, reason: "ok", user: [mockUser, mockUser, mockUser, mockUser, mockUser]});
+    })
+  })
+
+  describe('login', () => {
+    it('should fail if no user found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      let rslt = await userService.login({email: "", password: ""});
+      expect(rslt).toMatchObject({cnt: 0, reason: "wrong information1"});
+    });
+
+    it('should fail if the found user account is expired ', async () => {
+      mockUser.ddExpire = "20000101";
+      userRepository.findOne.mockResolvedValue(mockUser);
+      let rslt = await userService.login({email: "", password: ""});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'the account is expired'});
+    })
+
+    it('should fail if password wrong', async () => {
+      mockUser.ddExpire = new Date(new Date().setDate(new Date().getDate()+1))
+                                  .toLocaleDateString('ko').split(/[\. ]+/g).map(el => Number(el) < 10? '0'+el: ''+el).slice(0, -1).join('');
+      mockUser.checkPassword = (password) => false;
+      userRepository.findOne.mockResolvedValue(mockUser);
+      let rslt = await userService.login({email: "", password: ""});
+      expect(rslt).toMatchObject({cnt: 0, reason: "wrong  information2"});
+    })
+    it.todo('should succeed');
+  })
   it.todo('findById');
   it.todo('updateProfile');
   it.todo('expireProfile');
