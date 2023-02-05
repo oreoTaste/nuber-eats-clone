@@ -16,7 +16,9 @@ const mockRepository = () => ({
   update: jest.fn(),
 })
 type MockRepository<T=any> = Partial<Record<keyof Repository<User>, jest.Mock>>;
-const mockJwtService = {}
+const mockJwtService = {
+  sign: jest.fn(),
+}
 const mockConfigService = {}
 const mockMailService = {
   sendTemplate: jest.fn(),
@@ -33,6 +35,7 @@ describe("UersService", () => {
   let emailVerificationRepository: MockRepository<EmailVerification>;
   let logger: typeof mockLogger;
   let mailService: typeof mockMailService;
+  let jwtService: typeof mockJwtService;
   let mockUser = {email: "test email", ddBirth:'20220215', nmUser: "yk", idInsert: 1, password: "1234",
                   idUpdate: 1, healthRecords: null, checkPassword: null, ddExpire: null, dtInsert: null, 
                   dtUpdate: null, emailVerification:null, encryptPassword:null, id: 100};
@@ -59,6 +62,7 @@ describe("UersService", () => {
     emailVerificationRepository = module.get(getRepositoryToken(EmailVerification));
     mailService = module.get(MailService);
     logger = module.get(Logger);
+    jwtService = module.get(JwtService);
   })
   afterEach(() => {
     jest.clearAllMocks();
@@ -262,7 +266,16 @@ describe("UersService", () => {
       let rslt = await userService.login({email: "", password: ""});
       expect(rslt).toMatchObject({cnt: 0, reason: "wrong  information2"});
     })
-    it.todo('should succeed');
+    it('should succeed', async () => {
+      mockUser.ddExpire = new Date(new Date().setDate(new Date().getDate()+1))
+                                  .toLocaleDateString('ko').split(/[\. ]+/g).map(el => Number(el) < 10? '0'+el: ''+el).slice(0, -1).join('');
+      mockUser.checkPassword = (password) => true;
+      userRepository.findOne.mockResolvedValue(mockUser);
+      userRepository.update.mockResolvedValue(true);
+      jwtService.sign.mockReturnValue("12345");
+      let rslt = await userService.login({email: "", password: ""});
+      expect(rslt).toMatchObject({cnt: 0, reason: "ok", token: "12345"});
+    });
   })
   it.todo('findById');
   it.todo('updateProfile');
