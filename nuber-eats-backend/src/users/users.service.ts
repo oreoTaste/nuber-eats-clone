@@ -221,7 +221,7 @@ export class UsersService {
      *  @description: 아이디를 통한 사용자 확인
      */
     async findById(id: number): Promise<User> {
-        return this.user.findOne({where: {id} });
+        return await this.user.findOne({where: {id} });
     }
 
     /**
@@ -229,7 +229,7 @@ export class UsersService {
      */
     async updateProfile(authUser: User, input: UpdateProfileInput): Promise<UpdateProfileOutput> {
         try {
-            if(!authUser) {
+            if(!authUser || Object.keys(authUser).length == 0) {
                 return {cnt: 0, reason: 'invalid user'};
             }
             let newUser = await this.user.save(Object.assign(authUser, input));
@@ -238,11 +238,12 @@ export class UsersService {
             }
             if(input.email && authUser.email != input.email) {
                 newUser.dtEmailVerified = null;
-                this.user.update(newUser.id, {dtEmailVerified: null});
+                await this.user.update(newUser.id, {dtEmailVerified: null});
                 return this.generateEmailCode(authUser);
             }
             return {cnt: 1, reason: 'ok'};
         } catch(e) {
+            this.logger.error(`catch Error(e): ${e}, `, 'updateProfile');
             return {cnt: 0, reason: 'error while updating profile'};
         }
     }

@@ -277,7 +277,56 @@ describe("UersService", () => {
       expect(rslt).toMatchObject({cnt: 0, reason: "ok", token: "12345"});
     });
   })
-  it.todo('findById');
-  it.todo('updateProfile');
+  describe('findById', () => {
+    it('should fail if no user found ', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      let rslt = await userService.findById(1);
+      expect(rslt).toBeNull();
+    });
+    it('should succeed if a user found', async () => {
+      let mockUserData: any;
+      mockUserData = {};
+      Object.assign(mockUserData, mockUser);
+      userRepository.findOne.mockResolvedValue(mockUserData);
+      let rslt = await userService.findById(1);
+      expect(rslt).toMatchObject(mockUserData);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should fail if authUser not found', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      let rslt = await userService.updateProfile(mockAuthUser, {});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'invalid user'});
+    });
+    it('should fail if failed to update profile.', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      userRepository.save.mockResolvedValue(null)
+      let rslt = await userService.updateProfile(mockAuthUser, {});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'failed to update profile'});
+    })
+
+    // it('should succeed1', async () => {
+    //   let mockAuthUser: any;
+    //   mockAuthUser = {};
+    //   mockUser['dtEmailVerified'] = new Date();
+    //   Object.assign(mockAuthUser, mockUser);
+    //   userRepository.save.mockResolvedValue(mockAuthUser);
+    //   userRepository.update.mockResolvedValue({});
+    //   let rslt = await userService.updateProfile(mockAuthUser, {email: "new email2"});
+    //   expect(rslt).toMatchObject({cnt: 0, reason: 'email already verified'})
+    // });
+    it('should succeed', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      userRepository.save.mockResolvedValue(mockAuthUser);
+      let rslt = await userService.updateProfile(mockAuthUser, {email: mockUser.email});
+      expect(rslt).toMatchObject({cnt: 1, reason: 'ok'})
+    });
+  });
   it.todo('expireProfile');
 })
