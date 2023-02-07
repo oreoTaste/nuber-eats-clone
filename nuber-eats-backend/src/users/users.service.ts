@@ -54,7 +54,12 @@ export class UsersService {
      * @description: 계정생성 (사용자 그룹 검색/생성 -> 사용자 생성)
     */
     async createAccount({nmUserGrp, tpUserGrp, descUserGrp, nmUser, ddBirth, descUser, password, ddExpire, email, ...etc}: CreateAccountInput): Promise<CreateAccountOutput> {
-        let emailUser = await this.user.findOne({where: {email}});
+        let today = new Date()
+                        .toLocaleDateString('ko', {dateStyle: 'medium'})
+                        .replace(/\./g,'')
+                        .split(' ')
+                        .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+        let emailUser = await this.user.findOne({where: {email, ddExpire: MoreThan(today)}});
         if(emailUser) {
             return {cnt: 0, reason: 'found user with the email', idUser: null};
         }
@@ -232,15 +237,21 @@ export class UsersService {
             if(!authUser || Object.keys(authUser).length == 0) {
                 return {cnt: 0, reason: 'invalid user'};
             }
-            let newUser = await this.user.save(Object.assign(authUser, input));
+
+            let updateEmail: GenerateEmailCodeOutput = {cnt: 1, reason: "ok"};
+            if(input.email && (authUser.email != input.email)) {
+                input.dtEmailVerified = null;
+                Object.assign(authUser, input);
+                updateEmail = await this.generateEmailCode(authUser);
+            }
+            if(updateEmail['cnt'] <= 0) {
+                return updateEmail;
+            }
+            let newUser = await this.user.save(authUser);
             if(!newUser) {
                 return {cnt: 0, reason: 'failed to update profile'};
             }
-            if(input.email && authUser.email != input.email) {
-                newUser.dtEmailVerified = null;
-                await this.user.update(newUser.id, {dtEmailVerified: null});
-                return this.generateEmailCode(authUser);
-            }
+
             return {cnt: 1, reason: 'ok'};
         } catch(e) {
             this.logger.error(`catch Error(e): ${e}, `, 'updateProfile');
@@ -253,7 +264,7 @@ export class UsersService {
      */
     async expireProfile(authUser: User, {email}: ExpireProfileInput): Promise<CommonOutput> {
         try {
-            if(!authUser) {
+            if(!authUser || Object.keys(authUser).length == 0 || !email) {
                 return {cnt: 0, reason: 'invalid user'};
             }
 

@@ -309,16 +309,19 @@ describe("UersService", () => {
       expect(rslt).toMatchObject({cnt: 0, reason: 'failed to update profile'});
     })
 
-    // it('should succeed1', async () => {
-    //   let mockAuthUser: any;
-    //   mockAuthUser = {};
-    //   mockUser['dtEmailVerified'] = new Date();
-    //   Object.assign(mockAuthUser, mockUser);
-    //   userRepository.save.mockResolvedValue(mockAuthUser);
-    //   userRepository.update.mockResolvedValue({});
-    //   let rslt = await userService.updateProfile(mockAuthUser, {email: "new email2"});
-    //   expect(rslt).toMatchObject({cnt: 0, reason: 'email already verified'})
-    // });
+    it('should generate email code if different email input', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      mockUser['dtEmailVerified'] = new Date();
+      Object.assign(mockAuthUser, mockUser);
+      userRepository.save.mockResolvedValue(mockAuthUser);
+      userRepository.update.mockResolvedValue({});
+      const spyMethod = jest.spyOn(userService, 'generateEmailCode');
+
+      await userService.updateProfile(mockAuthUser, {email: "different email"});
+      expect(spyMethod).toBeCalledTimes(1);
+    });
+
     it('should succeed', async () => {
       let mockAuthUser: any;
       mockAuthUser = {};
@@ -328,5 +331,50 @@ describe("UersService", () => {
       expect(rslt).toMatchObject({cnt: 1, reason: 'ok'})
     });
   });
-  it.todo('expireProfile');
+
+  describe('expireProfile', () => {
+    it('should fail if authUser unidentified', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      let rslt = await userService.expireProfile(mockAuthUser, {email: mockAuthUser.email});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'invalid user'});
+    })
+    it('should fail if input email is null', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      let rslt = await userService.expireProfile(mockAuthUser, {email: null});
+      expect(rslt).toMatchObject({cnt: 0, reason: 'invalid user'});
+    })
+    it('should fail if input email is not others email', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      Object.assign(mockAuthUser, mockUser);
+      let rslt = await userService.expireProfile(mockAuthUser, {email: "other email"});
+      expect(rslt).toMatchObject({cnt: 0, reason: `cannot expire other user`});
+    })
+    it('should fail if user already expired', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      mockUser.ddExpire = null;
+      Object.assign(mockAuthUser, mockUser);
+      let rslt = await userService.expireProfile(mockAuthUser, {email: mockAuthUser.email});
+      expect(rslt).toMatchObject({cnt: 0, reason: `already expired`});
+    })
+    it('should sucess', async () => {
+      let mockAuthUser: any;
+      mockAuthUser = {};
+      let tomorrow = new Date(new Date().setDate(new Date().getDate() + 1))
+                                        .toLocaleDateString('ko', {dateStyle: 'medium'})
+                                        .replace(/\./g,'')
+                                        .split(' ')
+                                        .reduce((acc,val) => acc + (Number(val) < 10 ? '0'+val: val));
+      mockUser.ddExpire = tomorrow;
+      Object.assign(mockAuthUser, mockUser);
+      userRepository.save.mockResolvedValue("ok");
+      let rslt = await userService.expireProfile(mockAuthUser, {email: mockAuthUser.email});
+      expect(rslt).toMatchObject({cnt: 1, reason: 'ok'});
+      expect(userRepository.save).toBeCalledTimes(1);
+    })
+  });
 })
