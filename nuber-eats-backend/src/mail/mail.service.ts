@@ -44,9 +44,8 @@ export class MailService {
         try {
             let {from, to, subject, text, template, ...etc} = data;
             this.logger.log(`from:${from}, emailTo:${emailTo}, subject:${subject}${text?`, text:`+text:""}${template?`, template:`+template: ""}, data:${etc['h:X-Mailgun-Variables']}`,'send');
-            console.log(1);
+            console.log(`from:${from}, emailTo:${emailTo}, subject:${subject}${text?`, text:`+text:""}${template?`, template:`+template: ""}, data:${etc['h:X-Mailgun-Variables']}`,'send');
             const APIKEY = this.configService.get("MAILGUN_API_KEY");
-            console.log(2, APIKEY);
             const username = "Health Manager";
             const client = new Mailgun(formData).client({ key: APIKEY, username });
             const DOMAIN = this.configService.get("MAILGUN_API_URL");
