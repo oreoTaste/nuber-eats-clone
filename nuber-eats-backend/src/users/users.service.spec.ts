@@ -129,7 +129,7 @@ describe("UersService", () => {
     it('succeed if finds one user group', async () => {
       userGrpRepository.findAndCount.mockReturnValue([[mockUserGrp], 1]);
       logger.error.mockImplementation((...args) => {
-        console.log(args)
+        // console.log(args)
       })
       let rslt = await userService.searchGrpUsers({nmUserGrp: "그룹명"});
       expect(rslt).toMatchObject({users: mockUserGrp.users, cnt: mockUserGrp.users.length, reason: 'ok'});
@@ -139,7 +139,7 @@ describe("UersService", () => {
     it('succeed if finds multiple user groups', async() => {
       userGrpRepository.findAndCount.mockReturnValue([[mockUserGrp, mockUserGrp], 2]);
       logger.error.mockImplementation((...args) => {
-        console.log(args)
+        // console.log(args)
       })
       let rslt = await userService.searchGrpUsers({nmUserGrp: "그룹명"});
       let expectReslt = [mockUserGrp, mockUserGrp].map(el => el.users).flat();
