@@ -18,7 +18,7 @@ const mockConfigService = {
 };
 const mockLogger = {
     setContext: jest.fn(),
-    log: jest.fn((...param)=> console.log(...param)),
+    log: jest.fn((...param)=> /*console.log(...param) */{}),
     error: jest.fn()
 }
 describe('JwtService', () => {

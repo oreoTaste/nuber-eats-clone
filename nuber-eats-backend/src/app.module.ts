@@ -25,10 +25,10 @@ import { MailModule } from './mail/mail.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === "dev" ? '.dev.env' : '.env',
+      envFilePath: process.env.NODE_ENV === "dev" ? '.dev.env' : (process.env.NODE_ENV === "test" ? '.test.env' : '.env'),
       ignoreEnvFile: process.env.NODE_ENV === "prod",
       validationSchema: Joi.object({
-        NODE_ENV:Joi.string().valid('dev','prod').required(),
+        NODE_ENV:Joi.string().valid('dev','prod','test').required(),
         TOKEN_KEY: Joi.string().required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
@@ -45,7 +45,7 @@ import { MailModule } from './mail/mail.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       synchronize: true,
-      logging: true,
+      logging: (process.env.NODE_ENV === "dev" || process.env.NODE_ENV === "prod"),
       entities: ['dist/**/*.entity{.ts,.js}'],
       subscribers: [],
       migrations: [],
