@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { UsersModule } from 'src/users/users.module';
 import { AppModule } from 'src/app.module';
 
 describe('UserModule (e2e)', () => {
@@ -16,6 +15,9 @@ describe('UserModule (e2e)', () => {
     await appModule.init();
   });
 
+  afterAll(async () => {
+    appModule.close();
+  })
   it.todo('createAccount');
   it.todo('searchGrpUsers');
   it.todo('searchUser');
